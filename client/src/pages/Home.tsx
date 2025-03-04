@@ -5,7 +5,7 @@ import QuestionTypeSelector from '@/components/QuizEditor/QuestionTypeSelector';
 import QuestionList from '@/components/QuizEditor/QuestionList';
 import ExportModal from '@/components/Modals/ExportModal';
 import PreviewModal from '@/components/Modals/PreviewModal';
-import { useQuizState } from '@/hooks/useQuizState';
+import { useQuiz } from '@/context/QuizContext';
 import { Button } from '@/components/ui/button';
 import { PlusIcon } from 'lucide-react';
 
@@ -21,7 +21,13 @@ const Home = () => {
     setQuizTitle,
     quizDescription, 
     setQuizDescription
-  } = useQuizState();
+  } = useQuiz();
+
+  // Handler for the add question button
+  const handleAddQuestion = () => {
+    console.log('Add question button clicked');
+    addQuestion();
+  };
 
   return (
     <div className="bg-slate-50 min-h-screen font-sans text-slate-800">
@@ -51,7 +57,7 @@ const Home = () => {
             <div className="mt-6 pt-6 border-t border-gray-200">
               <Button 
                 className="w-full"
-                onClick={addQuestion}>
+                onClick={handleAddQuestion}>
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Add Question
               </Button>
@@ -59,6 +65,12 @@ const Home = () => {
           </aside>
           
           <main className="lg:col-span-4 space-y-6">
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-4">
+              <p className="text-yellow-800">
+                <strong>Debug info:</strong> Quiz has {quiz.questions.length} questions.
+                Current question type: {selectedQuestionType}
+              </p>
+            </div>
             <QuestionList />
           </main>
         </div>

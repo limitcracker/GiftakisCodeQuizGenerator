@@ -1,4 +1,4 @@
-import { useQuizState } from '@/hooks/useQuizState';
+import { useQuiz } from '@/context/QuizContext';
 import { Question } from '@/types';
 import CodeOrderQuestion from '@/components/QuestionTypes/CodeOrderQuestion';
 import MultipleChoiceQuestion from '@/components/QuestionTypes/MultipleChoiceQuestion';
@@ -6,7 +6,7 @@ import CodeFillQuestion from '@/components/QuestionTypes/CodeFillQuestion';
 import CodeErrorQuestion from '@/components/QuestionTypes/CodeErrorQuestion';
 
 export default function QuestionList() {
-  const { questions, updateQuestion, deleteQuestion, moveQuestionUp, moveQuestionDown } = useQuizState();
+  const { questions, updateQuestion, deleteQuestion, moveQuestionUp, moveQuestionDown } = useQuiz();
 
   console.log('Current questions in QuestionList:', questions);
 

@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import ClearStorage from "@/pages/ClearStorage";
+import { QuizProvider } from "@/context/QuizContext";
 
 function Router() {
   return (
@@ -19,16 +20,18 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
-      {/* Floating button in bottom right for troubleshooting */}
-      <div className="fixed bottom-4 right-4">
-        <Link href="/clear-storage">
-          <button className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full shadow-lg">
-            🧹
-          </button>
-        </Link>
-      </div>
+      <QuizProvider>
+        <Router />
+        <Toaster />
+        {/* Floating button in bottom right for troubleshooting */}
+        <div className="fixed bottom-4 right-4">
+          <Link href="/clear-storage">
+            <button className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full shadow-lg">
+              🧹
+            </button>
+          </Link>
+        </div>
+      </QuizProvider>
     </QueryClientProvider>
   );
 }
