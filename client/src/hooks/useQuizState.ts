@@ -30,6 +30,30 @@ export function useQuizState() {
   // Shortcut for questions
   const questions = quiz.questions;
   
+  // Helper function to generate default titles based on question type
+  const getDefaultTitle = (type: QuestionType): string => {
+    switch (type) {
+      case 'code-order':
+        return 'Put the following code blocks in the correct order to create a function that calculates the factorial of a number:';
+      case 'multiple-choice':
+        return 'Which of the following are valid ways to declare a variable in JavaScript? (Select all that apply)';
+      case 'single-choice':
+        return 'What is the correct way to declare a constant in JavaScript?';
+      case 'fill-gaps':
+        return 'Complete the JavaScript function that filters an array to return only even numbers:';
+      case 'find-errors':
+        return 'Find and select the lines that contain errors in this Python code:';
+      case 'jigsaw':
+        return 'Arrange the code blocks to form a valid function:';
+      case 'image-choice':
+        return 'Which image shows the correct output of this code?';
+      case 'video-choice':
+        return 'After watching the video, which approach is correct?';
+      default:
+        return 'New Question';
+    }
+  };
+
   // Add a new question based on the selected type
   const addQuestion = () => {
     if (!selectedQuestionType) return;
@@ -78,6 +102,8 @@ export function useQuizState() {
         ]
       })
     };
+    
+    console.log('Adding new question:', newQuestion);
     
     setQuiz(prev => ({
       ...prev,
@@ -154,30 +180,6 @@ export function useQuizState() {
         }))
       };
     });
-  };
-  
-  // Helper function to generate default titles based on question type
-  const getDefaultTitle = (type: QuestionType): string => {
-    switch (type) {
-      case 'code-order':
-        return 'Put the following code blocks in the correct order to create a function that calculates the factorial of a number:';
-      case 'multiple-choice':
-        return 'Which of the following are valid ways to declare a variable in JavaScript? (Select all that apply)';
-      case 'single-choice':
-        return 'What is the correct way to declare a constant in JavaScript?';
-      case 'fill-gaps':
-        return 'Complete the JavaScript function that filters an array to return only even numbers:';
-      case 'find-errors':
-        return 'Find and select the lines that contain errors in this Python code:';
-      case 'jigsaw':
-        return 'Arrange the code blocks to form a valid function:';
-      case 'image-choice':
-        return 'Which image shows the correct output of this code?';
-      case 'video-choice':
-        return 'After watching the video, which approach is correct?';
-      default:
-        return 'New Question';
-    }
   };
   
   // Hydrate from localStorage on initial load
