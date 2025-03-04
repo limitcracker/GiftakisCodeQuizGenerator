@@ -154,7 +154,7 @@ export function useQuizState() {
     };
     
     // Update global state
-    INITIAL_STATE = updatedQuiz;
+    GLOBAL_QUIZ_STATE = updatedQuiz;
     
     // Update component state
     setQuiz(updatedQuiz);
@@ -175,7 +175,7 @@ export function useQuizState() {
     };
     
     // Update global state
-    INITIAL_STATE = updatedQuiz;
+    GLOBAL_QUIZ_STATE = updatedQuiz;
     
     // Update component state
     setQuiz(updatedQuiz);
@@ -203,7 +203,7 @@ export function useQuizState() {
     };
     
     // Update global state
-    INITIAL_STATE = updatedQuiz;
+    GLOBAL_QUIZ_STATE = updatedQuiz;
     
     // Update component state
     setQuiz(updatedQuiz);
@@ -231,7 +231,7 @@ export function useQuizState() {
     };
     
     // Update global state
-    INITIAL_STATE = updatedQuiz;
+    GLOBAL_QUIZ_STATE = updatedQuiz;
     
     // Update component state
     setQuiz(updatedQuiz);
