@@ -58,7 +58,7 @@ export function useQuizState() {
         codeExample: '// Examples of variable declarations\nlet x = 10;\nconst PI = 3.14;\nvar name = "JavaScript";'
       }),
       ...(selectedQuestionType === 'fill-gaps' && {
-        codeWithGaps: 'function filterEvenNumbers(numbers) {\n  return numbers.[GAP_1]\(function(num) {\n    return [GAP_2];\n  });\n}',
+        codeWithGaps: 'function filterEvenNumbers(numbers) {\n  return numbers.[GAP_1](function(num) {\n    return [GAP_2];\n  });\n}',
         gaps: [
           { id: generateId(), position: 1, answer: 'filter' },
           { id: generateId(), position: 2, answer: 'num % 2 === 0' }
