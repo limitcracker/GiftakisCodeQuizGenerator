@@ -8,6 +8,8 @@ import CodeErrorQuestion from '@/components/QuestionTypes/CodeErrorQuestion';
 export default function QuestionList() {
   const { questions, updateQuestion, deleteQuestion, moveQuestionUp, moveQuestionDown } = useQuizState();
 
+  console.log('Current questions in QuestionList:', questions);
+
   if (questions.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm p-8 text-center">
@@ -18,6 +20,8 @@ export default function QuestionList() {
   }
 
   const renderQuestion = (question: Question) => {
+    console.log('Rendering question:', question);
+    
     const commonProps = {
       question,
       onUpdate: updateQuestion,
@@ -35,8 +39,10 @@ export default function QuestionList() {
       case 'fill-gaps':
         return <CodeFillQuestion key={question.id} {...commonProps} />;
       case 'find-errors':
+        console.log('Rendering find-errors question:', question);
         return <CodeErrorQuestion key={question.id} {...commonProps} />;
       default:
+        console.log('Unknown question type:', question.type);
         return (
           <div key={question.id} className="bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-medium">

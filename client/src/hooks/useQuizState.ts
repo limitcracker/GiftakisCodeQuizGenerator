@@ -187,7 +187,9 @@ export function useQuizState() {
     const savedQuiz = localStorage.getItem('codeQuiz');
     if (savedQuiz) {
       try {
-        setQuiz(JSON.parse(savedQuiz));
+        const parsedQuiz = JSON.parse(savedQuiz);
+        console.log('Loading quiz from localStorage:', parsedQuiz);
+        setQuiz(parsedQuiz);
       } catch (e) {
         console.error('Error parsing saved quiz:', e);
       }
@@ -196,6 +198,7 @@ export function useQuizState() {
   
   // Save to localStorage when quiz changes
   useEffect(() => {
+    console.log('Saving quiz to localStorage:', quiz);
     localStorage.setItem('codeQuiz', JSON.stringify(quiz));
   }, [quiz]);
   
