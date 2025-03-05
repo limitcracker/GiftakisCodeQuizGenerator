@@ -246,7 +246,7 @@ export function generateHtml(quiz: Quiz): string {
   <div class="cq-quiz" ${quiz.timeLimit ? `data-time-limit="${quiz.timeLimit}"` : ''}>
     <h1 class="cq-title">${escape(title)}</h1>
     <p class="cq-description">${escape(description)}</p>
-    ${quiz.timeLimit ? `<div class="cq-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-timer-display"></span></div>` : ''}
+    ${quiz.timeLimit ? `<div class="cq-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-timer-display">00:00</span></div>` : ''}
     
 ${generateQuestionHtml()}
     
@@ -315,89 +315,121 @@ ${generateQuestionHtml()}
   </style>
   
   <script>
+    // Wait for the DOM to be fully loaded
     document.addEventListener('DOMContentLoaded', function() {
+      console.log("DOM fully loaded, initializing quiz components...");
+      
       // Initialize syntax highlighting
-      hljs.highlightAll();
+      if (typeof hljs !== 'undefined') {
+        try {
+          hljs.highlightAll();
+          console.log("Syntax highlighting initialized");
+        } catch (e) {
+          console.error("Error initializing syntax highlighting:", e);
+        }
+      } else {
+        console.warn("Highlight.js not loaded");
+      }
       
       // Format time as MM:SS
       function formatTime(seconds) {
+        if (typeof seconds !== 'number' || isNaN(seconds)) {
+          return "00:00";
+        }
         const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return minutes.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
       }
       
-      // Initialize quiz timer if it exists
-      const quizElement = document.querySelector('.cq-quiz');
-      const timeLimit = quizElement ? quizElement.getAttribute('data-time-limit') : null;
-      const timerDisplay = document.querySelector('.cq-timer-display');
-      
-      // Initialize quiz-level timer
-      if (timeLimit && timerDisplay) {
-        let remainingTime = parseInt(timeLimit);
+      // Timer initialization function - more reliable
+      function initializeTimers() {
+        console.log("Initializing timers...");
         
-        // Initial display
-        timerDisplay.textContent = formatTime(remainingTime);
-        
-        // Start timer
-        const timerInterval = setInterval(() => {
-          remainingTime--;
-          timerDisplay.textContent = formatTime(remainingTime);
+        // Initialize quiz-level timer
+        const quizElement = document.querySelector('.cq-quiz');
+        if (quizElement) {
+          const timeLimit = quizElement.getAttribute('data-time-limit');
+          const timerDisplay = document.querySelector('.cq-timer-display');
           
-          // Change color when less than 1 minute remains
-          if (remainingTime <= 60) {
-            timerDisplay.style.color = '#ef4444';
-          }
-          
-          // Time's up
-          if (remainingTime <= 0) {
-            clearInterval(timerInterval);
-            alert('Time\'s up! Your quiz session has ended.');
-            const checkButton = document.querySelector('.cq-check');
-            if (checkButton) checkButton.click(); // Auto-check answers
-          }
-        }, 1000);
-      }
-      
-      // Initialize per-question timers
-      document.querySelectorAll('.cq-question[data-time-limit]').forEach(question => {
-        const timeLimit = parseInt(question.getAttribute('data-time-limit') || '0');
-        const timerDisplay = question.querySelector('.cq-question-timer-display');
-        
-        if (timeLimit && timerDisplay) {
-          let remainingTime = timeLimit;
-          
-          // Initial display
-          timerDisplay.textContent = formatTime(remainingTime);
-          
-          // Start timer 
-          const timerInterval = setInterval(() => {
-            remainingTime--;
+          if (timeLimit && timerDisplay) {
+            let remainingTime = parseInt(timeLimit);
+            console.log("Quiz timer initialized with " + remainingTime + " seconds");
+            
+            // Initial display
             timerDisplay.textContent = formatTime(remainingTime);
             
-            // Change color when less than 30 seconds remains
-            if (remainingTime <= 30) {
-              timerDisplay.style.color = '#ef4444';
-            }
-            
-            // Time's up
-            if (remainingTime <= 0) {
-              clearInterval(timerInterval);
-              // Make the timer display more visible
-              const timerElement = question.querySelector('.cq-question-timer');
-              if (timerElement) {
-                timerElement.style.backgroundColor = '#fee2e2';
-                timerElement.style.borderColor = '#f87171';
+            // Start timer
+            const timerInterval = setInterval(() => {
+              remainingTime--;
+              timerDisplay.textContent = formatTime(remainingTime);
+              
+              // Change color when less than 1 minute remains
+              if (remainingTime <= 60) {
+                timerDisplay.style.color = '#ef4444';
               }
               
-              // Auto-reveal solution if available based on question type
-              const solutionButton = question.querySelector('.cq-show-solution, .cq-show-order-solution, .cq-show-choice-solution, .cq-show-gaps-solution, .cq-show-errors-solution');
-              if (solutionButton) {
-                solutionButton.click();
+              // Time's up
+              if (remainingTime <= 0) {
+                clearInterval(timerInterval);
+                console.log("Quiz time's up!");
+                alert('Time\'s up! Your quiz session has ended.');
+                const checkButton = document.querySelector('.cq-check');
+                if (checkButton) checkButton.click(); // Auto-check answers
               }
-            }
-          }, 1000);
+            }, 1000);
+          }
         }
-      });
+        
+        // Initialize per-question timers
+        const questionElements = document.querySelectorAll('.cq-question[data-time-limit]');
+        console.log("Found " + questionElements.length + " questions with timers");
+        
+        questionElements.forEach((question, index) => {
+          const timeLimit = parseInt(question.getAttribute('data-time-limit') || '0');
+          const timerDisplay = question.querySelector('.cq-question-timer-display');
+          
+          if (timeLimit && timerDisplay) {
+            let remainingTime = timeLimit;
+            console.log("Question " + (index + 1) + " timer initialized with " + remainingTime + " seconds");
+            
+            // Initial display
+            timerDisplay.textContent = formatTime(remainingTime);
+            
+            // Start timer 
+            const timerInterval = setInterval(() => {
+              remainingTime--;
+              timerDisplay.textContent = formatTime(remainingTime);
+              
+              // Change color when less than 30 seconds remains
+              if (remainingTime <= 30) {
+                timerDisplay.style.color = '#ef4444';
+              }
+              
+              // Time's up
+              if (remainingTime <= 0) {
+                clearInterval(timerInterval);
+                console.log("Question " + (index + 1) + " time's up!");
+                
+                // Make the timer display more visible
+                const timerElement = question.querySelector('.cq-question-timer');
+                if (timerElement) {
+                  timerElement.style.backgroundColor = '#fee2e2';
+                  timerElement.style.borderColor = '#f87171';
+                }
+                
+                // Auto-reveal solution if available based on question type
+                const solutionButton = question.querySelector('.cq-show-solution, .cq-show-order-solution, .cq-show-choice-solution, .cq-show-gaps-solution, .cq-show-errors-solution');
+                if (solutionButton) {
+                  solutionButton.click();
+                }
+              }
+            }, 1000);
+          }
+        });
+      }
+      
+      // Initialize timers with a slight delay to ensure DOM is fully processed
+      setTimeout(initializeTimers, 100);
       
       // Shuffle code blocks for ordering questions
       document.querySelectorAll('.cq-question[data-type="order"]').forEach(question => {
@@ -465,7 +497,7 @@ ${generateQuestionHtml()}
         });
         
         // Show score
-        alert(\`You got \${score} out of \${total} questions correct!\`);
+        alert("You got " + score + " out of " + total + " questions correct!");
       });
       
       // Reset quiz
@@ -753,7 +785,7 @@ ${generateQuestionHtml()}
           
           // If the code returns a value, add it to the logs
           if (result !== undefined) {
-            logs.push(\`Return value: \${result}\`);
+            logs.push("Return value: " + result);
           }
           
           outputElement.textContent = logs.join('\\n') || 'Code executed successfully (no output)';
