@@ -29,7 +29,10 @@ export const questionTypeEnum = z.enum([
   'single-choice',
   'find-errors',
   'image-choice',
-  'video-choice'
+  'video-choice',
+  'text-short',
+  'text-long',
+  'fill-whole'
 ]);
 
 export type QuestionType = z.infer<typeof questionTypeEnum>;
@@ -85,6 +88,14 @@ export const questionSchema = z.object({
   codePrefix: z.string().optional(),
   codeSuffix: z.string().optional(),
   solutionCode: z.string().optional(),
+  
+  // For text question types
+  textAnswer: z.string().optional(),      // Expected answer for text questions
+  isMarkdown: z.boolean().optional(),     // Whether to enable markdown/code formatting in answers
+  supportCodeBlocks: z.boolean().optional(), // Whether code blocks should be supported in the editor
+  minLength: z.number().optional(),       // Minimum character length for answers
+  maxLength: z.number().optional(),       // Maximum character length for answers
+  
   language: z.string().optional(),
   hintComment: z.string().optional()
 });

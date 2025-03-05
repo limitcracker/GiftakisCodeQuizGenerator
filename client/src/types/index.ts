@@ -8,7 +8,9 @@ export type QuestionType =
   | 'find-errors'
   | 'image-choice'
   | 'video-choice'
-  | 'fill-whole';
+  | 'fill-whole'
+  | 'text-short'
+  | 'text-long';
 
 export interface Quiz {
   id: string;
@@ -53,6 +55,14 @@ export interface Question {
   codePrefix?: string;  // Code that comes before the part to be filled
   codeSuffix?: string;  // Code that comes after the part to be filled
   solutionCode?: string;  // The expected solution code
+  
+  // Text questions (short/long)
+  textAnswer?: string;           // Expected answer for text questions
+  isMarkdown?: boolean;          // Whether to enable markdown/code formatting in answers
+  supportCodeBlocks?: boolean;   // Whether code blocks should be supported in the editor
+  minLength?: number;            // Minimum character length for answers
+  maxLength?: number;            // Maximum character length for answers
+  
   language?: string;  // Programming language for syntax highlighting
   hintComment?: string;  // Optional hint to show in comments
 }

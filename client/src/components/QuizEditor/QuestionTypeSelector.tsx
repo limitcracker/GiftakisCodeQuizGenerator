@@ -8,7 +8,9 @@ import {
   Bug, 
   Image, 
   Video,
-  FileCode
+  FileCode,
+  AlignLeft,
+  TextQuote
 } from 'lucide-react';
 
 const questionTypes = [
@@ -46,6 +48,16 @@ const questionTypes = [
     type: 'find-errors' as QuestionType, 
     icon: Bug, 
     label: 'Find Code Errors' 
+  },
+  { 
+    type: 'text-short' as QuestionType, 
+    icon: AlignLeft, 
+    label: 'Short Answer Text' 
+  },
+  { 
+    type: 'text-long' as QuestionType, 
+    icon: TextQuote, 
+    label: 'Long Answer Text' 
   },
   { 
     type: 'image-choice' as QuestionType, 
