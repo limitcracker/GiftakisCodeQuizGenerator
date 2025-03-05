@@ -383,6 +383,140 @@ ${generateQuestionHtml()}
           }
         });
       });
+      
+      // Handle code execution for Fill Whole questions
+      let pyodideInstance = null;
+      let pyodideLoading = false;
+      
+      async function loadPyodide() {
+        if (pyodideInstance) return pyodideInstance;
+        if (pyodideLoading) {
+          // Wait for Pyodide to finish loading
+          return new Promise(resolve => {
+            const checkInterval = setInterval(() => {
+              if (pyodideInstance) {
+                clearInterval(checkInterval);
+                resolve(pyodideInstance);
+              }
+            }, 100);
+          });
+        }
+        
+        pyodideLoading = true;
+        try {
+          // Show loading message in all Python outputs
+          document.querySelectorAll('.cq-question[data-language="python"] .cq-output-content').forEach(output => {
+            output.textContent = 'Loading Python environment... This may take a moment.';
+            output.closest('.cq-code-output').style.display = 'block';
+          });
+          
+          // Load Pyodide
+          pyodideInstance = await loadPyodide();
+          
+          // Clear loading messages
+          document.querySelectorAll('.cq-question[data-language="python"] .cq-output-content').forEach(output => {
+            output.textContent = 'Python environment loaded and ready!';
+          });
+          
+          return pyodideInstance;
+        } catch (error) {
+          console.error('Error loading Pyodide:', error);
+          document.querySelectorAll('.cq-question[data-language="python"] .cq-output-content').forEach(output => {
+            output.textContent = 'Error loading Python environment. Please try again or check console for details.';
+          });
+          pyodideLoading = false;
+          throw error;
+        }
+      }
+      
+      // Execute JavaScript code
+      function executeJavaScript(code, outputElement) {
+        const logs = [];
+        const originalConsoleLog = console.log;
+        
+        try {
+          // Override console.log to capture output
+          console.log = (...args) => {
+            logs.push(args.map(arg => String(arg)).join(' '));
+            originalConsoleLog(...args);
+          };
+          
+          // Execute the code
+          const result = new Function(code)();
+          
+          // If the code returns a value, add it to the logs
+          if (result !== undefined) {
+            logs.push(\`Return value: \${result}\`);
+          }
+          
+          outputElement.textContent = logs.join('\\n') || 'Code executed successfully (no output)';
+        } catch (error) {
+          outputElement.textContent = \`Error: \${error.message}\`;
+        } finally {
+          // Restore the original console.log
+          console.log = originalConsoleLog;
+        }
+      }
+      
+      // Execute Python code
+      async function executePython(code, outputElement) {
+        try {
+          outputElement.textContent = 'Running Python code...';
+          
+          const pyodide = await loadPyodide();
+          
+          // Redirect stdout
+          pyodide.setStdout({
+            write: text => {
+              const currentOutput = outputElement.textContent;
+              outputElement.textContent = currentOutput === 'Running Python code...' ? text : currentOutput + '\\n' + text;
+            }
+          });
+          
+          // Run the code
+          const result = await pyodide.runPythonAsync(code);
+          
+          // If there's a result value and no output yet, show it
+          if (result !== undefined && outputElement.textContent === 'Running Python code...') {
+            outputElement.textContent = String(result);
+          } else if (outputElement.textContent === 'Running Python code...') {
+            outputElement.textContent = 'Code executed successfully (no output)';
+          }
+        } catch (error) {
+          outputElement.textContent = \`Error: \${error.message}\`;
+        }
+      }
+      
+      // Add event listeners for run code buttons
+      document.querySelectorAll('.cq-run-code').forEach(btn => {
+        btn.addEventListener('click', async function() {
+          const question = this.closest('.cq-question');
+          const language = question.getAttribute('data-language') || 'javascript';
+          const inputElement = question.querySelector('.cq-code-solution-input');
+          const outputElement = question.querySelector('.cq-output-content');
+          const outputContainer = question.querySelector('.cq-code-output');
+          
+          // Show the output container
+          outputContainer.style.display = 'block';
+          
+          // Get code components
+          const codePrefix = question.querySelector('.cq-code-prefix code').textContent || '';
+          const userCode = inputElement.value || '';
+          const codeSuffix = question.querySelector('.cq-code-suffix code').textContent || '';
+          
+          // Combine the code
+          const completeCode = \`\${codePrefix}\\n\${userCode}\\n\${codeSuffix}\`;
+          
+          // Execute based on language
+          if (language === 'javascript') {
+            executeJavaScript(completeCode, outputElement);
+          } else if (language === 'python') {
+            await executePython(completeCode, outputElement);
+          } else {
+            outputElement.textContent = \`Language '\${language}' is not supported for execution.\`;
+          }
+        });
+      });
     });
   </script>
 </div>`;
