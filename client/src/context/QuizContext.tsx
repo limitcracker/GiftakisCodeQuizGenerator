@@ -9,7 +9,8 @@ const createDefaultQuiz = (): Quiz => ({
   id: generateId(),
   title: 'JavaScript Basics Quiz',
   description: 'Test your JavaScript knowledge with this quiz',
-  questions: []
+  questions: [],
+  timeLimit: null // No time limit by default
 });
 
 // Context type
@@ -22,8 +23,11 @@ type QuizContextType = {
   setQuizTitle: (title: string) => void;
   quizDescription: string;
   setQuizDescription: (description: string) => void;
+  quizTimeLimit: number | null;
+  setQuizTimeLimit: (timeLimit: number | null) => void;
   addQuestion: () => void;
   updateQuestion: (updatedQuestion: Question) => void;
+  updateQuestionTimeLimit: (questionId: string, timeLimit: number | null) => void;
   deleteQuestion: (questionId: string) => void;
   moveQuestionUp: (questionId: string) => void;
   moveQuestionDown: (questionId: string) => void;

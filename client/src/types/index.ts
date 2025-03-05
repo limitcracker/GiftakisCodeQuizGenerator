@@ -15,6 +15,7 @@ export interface Quiz {
   title: string;
   description: string;
   questions: Question[];
+  timeLimit: number | null; // Overall quiz time limit in seconds (null = no limit)
 }
 
 export interface Question {
@@ -26,6 +27,7 @@ export interface Question {
   
   // Question control settings
   hideSolution?: boolean;  // If true, students cannot view the solution
+  timeLimit?: number | null;  // Time limit in seconds (null = no limit)
   
   // Type-specific properties
   codeBlocks?: CodeOrderBlock[];  // For code-order questions

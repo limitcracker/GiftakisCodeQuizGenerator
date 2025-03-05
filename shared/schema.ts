@@ -65,6 +65,8 @@ export const questionSchema = z.object({
   title: z.string(),
   explanation: z.string().optional(),
   order: z.number(),
+  timeLimit: z.number().nullable().optional(), // Time limit in seconds for this specific question (null = no limit)
+  hideSolution: z.boolean().optional(), // If true, students cannot view the solution
   
   // Type-specific optional properties
   codeBlocks: z.array(codeOrderBlockSchema).optional(),
@@ -77,14 +79,22 @@ export const questionSchema = z.object({
   
   code: z.string().optional(),
   errorLines: z.array(codeErrorLineSchema).optional(),
-  errors: z.array(z.string()).optional()
+  errors: z.array(z.string()).optional(),
+  
+  // For fill-whole type
+  codePrefix: z.string().optional(),
+  codeSuffix: z.string().optional(),
+  solutionCode: z.string().optional(),
+  language: z.string().optional(),
+  hintComment: z.string().optional()
 });
 
 export const quizContentSchema = z.object({
   id: z.string(),
   title: z.string(),
   description: z.string(),
-  questions: z.array(questionSchema)
+  questions: z.array(questionSchema),
+  timeLimit: z.number().nullable().optional() // Overall quiz time limit in seconds (null = no limit)
 });
 
 export type QuizContent = z.infer<typeof quizContentSchema>;
