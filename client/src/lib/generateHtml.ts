@@ -433,6 +433,49 @@ ${generateQuestionHtml()}
     .cq-text-format-controls { margin: 0.5rem 0; }
     .cq-format-code { background: #3b82f6; }
     .cq-format-code:hover { background: #2563eb; }
+    
+    /* Code order question styles */
+    .cq-order-container { 
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin: 1.5rem 0;
+    }
+    .cq-code-block {
+      border: 1px solid #e5e7eb;
+      border-radius: 0.375rem;
+      padding: 0.5rem;
+      background-color: #f9fafb;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      user-select: none;
+    }
+    .cq-code-block:hover {
+      border-color: #d1d5db;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .cq-code-block.dragging {
+      opacity: 0.8;
+      transform: scale(1.02);
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+      z-index: 10;
+    }
+    .cq-order-correct .cq-code-block {
+      border-color: #10b981;
+      background-color: #ecfdf5;
+    }
+    .cq-order-incorrect .cq-code-block {
+      border-color: #ef4444;
+      background-color: #fef2f2;
+    }
+    .cq-show-order-solution {
+      background-color: #2563eb;
+    }
+    .cq-show-order-solution:hover {
+      background-color: #1d4ed8;
+    }
+    
+    /* Text solution styles */
     .cq-text-solution { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 1rem; margin: 1rem 0; }
     .cq-text-solution h3 { font-size: 1rem; color: #166534; margin-top: 0; margin-bottom: 0.5rem; }
     .cq-text-solution-content { color: #166534; font-size: 0.9rem; }
@@ -534,6 +577,150 @@ ${generateQuestionHtml()}
           // Check all answers
           console.log('Check answers clicked');
         });
+      }
+      
+      // Code order questions
+      const orderContainers = document.querySelectorAll('.cq-order-container');
+      orderContainers.forEach(container => {
+        const codeBlocks = [...container.querySelectorAll('.cq-code-block')];
+        
+        // Randomize the order of code blocks initially
+        shuffleBlocks(container, codeBlocks);
+        
+        // Set up drag & drop for code blocks
+        setupDragAndDrop(container, codeBlocks);
+        
+        // Show solution button
+        const showSolutionBtn = container.parentElement.querySelector('.cq-show-order-solution');
+        if (showSolutionBtn) {
+          showSolutionBtn.addEventListener('click', function() {
+            const containerElement = this.closest('.cq-question').querySelector('.cq-order-container');
+            const blocks = [...containerElement.querySelectorAll('.cq-code-block')];
+            
+            // Sort blocks by correctPosition attribute
+            blocks.sort((a, b) => {
+              return parseInt(a.dataset.position) - parseInt(b.dataset.position);
+            });
+            
+            // Reorder blocks in the container
+            blocks.forEach(block => {
+              containerElement.appendChild(block);
+            });
+            
+            // Change button text and disable it
+            this.textContent = 'Solution Shown';
+            this.disabled = true;
+            this.style.opacity = '0.7';
+            this.style.cursor = 'default';
+          });
+        }
+      });
+      
+      // Function to shuffle code blocks
+      function shuffleBlocks(container, blocks) {
+        // Clone and shuffle array
+        const shuffled = [...blocks].sort(() => Math.random() - 0.5);
+        
+        // Reapply to container
+        shuffled.forEach(block => {
+          container.appendChild(block);
+        });
+      }
+      
+      // Function to set up drag and drop for code blocks
+      function setupDragAndDrop(container, blocks) {
+        blocks.forEach(block => {
+          // Make each block draggable
+          block.setAttribute('draggable', 'true');
+          
+          // Drag start
+          block.addEventListener('dragstart', function(e) {
+            this.classList.add('dragging');
+            // Set dragged element data
+            e.dataTransfer.setData('text/plain', this.dataset.id);
+            e.dataTransfer.effectAllowed = 'move';
+          });
+          
+          // Drag end
+          block.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+          });
+          
+          // Click to select
+          block.addEventListener('click', function() {
+            // If already selected, do nothing
+            if (this.classList.contains('selected')) return;
+            
+            // Select this block
+            const selected = container.querySelector('.cq-code-block.selected');
+            if (selected) {
+              // If another block is selected, swap them
+              const selectedIndex = Array.from(container.children).indexOf(selected);
+              const thisIndex = Array.from(container.children).indexOf(this);
+              
+              if (selectedIndex < thisIndex) {
+                // Insert after this block
+                container.insertBefore(selected, this.nextSibling);
+              } else {
+                // Insert before this block
+                container.insertBefore(selected, this);
+              }
+              
+              selected.classList.remove('selected');
+            } else {
+              // Select this block
+              this.classList.add('selected');
+            }
+          });
+        });
+        
+        // Container drag over
+        container.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          
+          // Find the closest block to cursor
+          const afterElement = getDragAfterElement(container, e.clientY);
+          const draggable = container.querySelector('.dragging');
+          
+          if (afterElement) {
+            container.insertBefore(draggable, afterElement);
+          } else {
+            container.appendChild(draggable);
+          }
+        });
+        
+        // Container drop
+        container.addEventListener('drop', function(e) {
+          e.preventDefault();
+          const id = e.dataTransfer.getData('text/plain');
+          const selector = '.cq-code-block[data-id="' + id + '"]';
+          const draggable = container.querySelector(selector);
+          
+          // Already inserted by dragover
+          if (draggable) {
+            draggable.classList.remove('dragging');
+          }
+        });
+      }
+      
+      // Helper function to find the closest element to insert after
+      function getDragAfterElement(container, y) {
+        // Get all non-dragging elements
+        const elements = [...container.querySelectorAll('.cq-code-block:not(.dragging)')];
+        
+        // Find the element whose "middle" the y-coordinate is closest to
+        return elements.reduce((closest, element) => {
+          const box = element.getBoundingClientRect();
+          const offset = y - (box.top + box.height / 2);
+          
+          // If offset is negative, we're above the middle, but we want the closest one
+          if (offset < 0 && offset > closest.offset) {
+            return { offset, element };
+          } else {
+            return closest;
+          }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
       }
       
       // Show/Hide solution for text questions
