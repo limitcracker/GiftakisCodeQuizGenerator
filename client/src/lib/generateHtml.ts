@@ -790,7 +790,7 @@ ${generateQuestionHtml()}
           
           outputElement.textContent = logs.join('\\n') || 'Code executed successfully (no output)';
         } catch (error) {
-          outputElement.textContent = \`Error: \${error.message}\`;
+          outputElement.textContent = "Error: " + error.message;
         } finally {
           // Restore the original console.log
           console.log = originalConsoleLog;
@@ -822,7 +822,7 @@ ${generateQuestionHtml()}
             outputElement.textContent = 'Code executed successfully (no output)';
           }
         } catch (error) {
-          outputElement.textContent = \`Error: \${error.message}\`;
+          outputElement.textContent = "Error: " + error.message;
         }
       }
       
@@ -844,7 +844,7 @@ ${generateQuestionHtml()}
           const codeSuffix = question.querySelector('.cq-code-suffix code').textContent || '';
           
           // Combine the code
-          const completeCode = \`\${codePrefix}\\n\${userCode}\\n\${codeSuffix}\`;
+          const completeCode = codePrefix + '\n' + userCode + '\n' + codeSuffix;
           
           // Execute based on language
           if (language === 'javascript') {
@@ -852,7 +852,7 @@ ${generateQuestionHtml()}
           } else if (language === 'python') {
             await executePython(completeCode, outputElement);
           } else {
-            outputElement.textContent = \`Language '\${language}' is not supported for execution.\`;
+            outputElement.textContent = "Language '" + language + "' is not supported for execution.";
           }
         });
       });
