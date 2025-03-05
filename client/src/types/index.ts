@@ -7,7 +7,8 @@ export type QuestionType =
   | 'single-choice'
   | 'find-errors'
   | 'image-choice'
-  | 'video-choice';
+  | 'video-choice'
+  | 'fill-whole';
 
 export interface Quiz {
   id: string;
@@ -42,6 +43,13 @@ export interface Question {
   jigsawPieces?: JigsawPiece[];
   gridSize?: { rows: number; columns: number };
   jigsawDescription?: string;
+  
+  // Fill whole code blocks
+  codePrefix?: string;  // Code that comes before the part to be filled
+  codeSuffix?: string;  // Code that comes after the part to be filled
+  solutionCode?: string;  // The expected solution code
+  language?: string;  // Programming language for syntax highlighting
+  hintComment?: string;  // Optional hint to show in comments
 }
 
 // Code Ordering

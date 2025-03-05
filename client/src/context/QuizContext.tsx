@@ -58,6 +58,8 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         return 'Which image shows the correct output of this code?';
       case 'video-choice':
         return 'After watching the video, which approach is correct?';
+      case 'fill-whole':
+        return 'Implement the missing code section to complete this function:';
       default:
         return 'New Question';
     }
@@ -125,6 +127,13 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         ],
         gridSize: { rows: 3, columns: 3 },
         jigsawDescription: 'Arrange the code blocks to form a valid age checking condition structure'
+      }),
+      ...(selectedQuestionType === 'fill-whole' && {
+        codePrefix: '// Implement a function to calculate the factorial of a number\nfunction factorial(n) {\n  // Your code here\n',
+        codeSuffix: '\n}\n\nconsole.log(factorial(5)); // Should output: 120',
+        solutionCode: '  if (n <= 1) return 1;\n  return n * factorial(n - 1);',
+        language: 'javascript',
+        hintComment: 'Remember that factorial(0) = 1 and factorial(n) = n * factorial(n-1) for n > 0'
       })
     };
     

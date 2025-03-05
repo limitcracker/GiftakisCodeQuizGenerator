@@ -5,6 +5,7 @@ import MultipleChoiceQuestion from '@/components/QuestionTypes/MultipleChoiceQue
 import CodeFillQuestion from '@/components/QuestionTypes/CodeFillQuestion';
 import CodeErrorQuestion from '@/components/QuestionTypes/CodeErrorQuestion';
 import JigsawQuestion from '@/components/QuestionTypes/JigsawQuestion';
+import FillWholeQuestion from '@/components/QuestionTypes/FillWholeQuestion';
 
 export default function QuestionList() {
   const { questions, updateQuestion, deleteQuestion, moveQuestionUp, moveQuestionDown } = useQuiz();
@@ -43,6 +44,8 @@ export default function QuestionList() {
         return <CodeErrorQuestion key={question.id} {...commonProps} />;
       case 'jigsaw':
         return <JigsawQuestion key={question.id} {...commonProps} />;
+      case 'fill-whole':
+        return <FillWholeQuestion key={question.id} {...commonProps} />;
       default:
         console.log('Unknown question type:', question.type);
         return (
