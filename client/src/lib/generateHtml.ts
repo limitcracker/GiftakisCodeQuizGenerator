@@ -129,9 +129,12 @@ export function generateHtml(quiz: Quiz): string {
       <div class="cq-code-with-errors">
         <pre><code class="language-python">${escape(question.code || '')}</code></pre>
         <div class="cq-line-numbers">
-          ${(question.code || '').split('\n').map((_, i) => 
-            `<div class="cq-line-number ${(question.errorLines || []).some(line => line.lineNumber === i + 1) ? 'cq-error-line' : ''}" data-line="${i + 1}">${i + 1}</div>`
-          ).join('\n          ')}
+          ${(question.code || '').split('\n').map((_, i) => {
+            const lineNumber = i + 1;
+            const isError = (question.errorLines || []).some(line => line.lineNumber === lineNumber);
+            const errorLine = (question.errorLines || []).find(line => line.lineNumber === lineNumber);
+            return `<div class="cq-line-number ${isError ? 'cq-error-line' : ''}" data-line="${lineNumber}" ${isError ? `data-error-code="${escape(errorLine?.code || '')}"` : ''}>${lineNumber}</div>`;
+          }).join('\n          ')}
         </div>
       </div>
       <div class="cq-error-options">
@@ -143,6 +146,20 @@ export function generateHtml(quiz: Quiz): string {
         </label>`
         ).join('\n        ')}
       </div>
+      
+      <div class="cq-code-controls">
+        ${!question.hideSolution ? `
+        <button class="cq-button cq-show-errors-solution">Show Solution</button>
+        ` : ''}
+        ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
+      </div>
+      
+      ${question.hintComment ? `
+      <div class="cq-hint" style="display: none;">
+        <div class="cq-hint-icon">💡</div>
+        <div class="cq-hint-text">${escape(question.hintComment)}</div>
+      </div>` : ''}
+      
       ${question.explanation ? `<div class="cq-explanation">${escape(question.explanation)}</div>` : ''}
     </div>`;
           break;
@@ -245,8 +262,8 @@ ${generateQuestionHtml()}
     .cq-error-options { margin: 1rem 0; }
     .cq-button { background: #0ea5e9; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.875rem; }
     .cq-button:hover { background: #0284c7; }
-    .cq-show-order-solution, .cq-show-choice-solution { background: #059669; }
-    .cq-show-order-solution:hover, .cq-show-choice-solution:hover { background: #047857; }
+    .cq-show-order-solution, .cq-show-choice-solution, .cq-show-gaps-solution, .cq-show-errors-solution { background: #059669; }
+    .cq-show-order-solution:hover, .cq-show-choice-solution:hover, .cq-show-gaps-solution:hover, .cq-show-errors-solution:hover { background: #047857; }
     .cq-code-controls { display: flex; gap: 0.5rem; margin: 1rem 0; }
     .cq-error-option { display: flex; align-items: center; margin-bottom: 0.5rem; }
     .cq-error-option span { margin-left: 0.5rem; }
@@ -354,6 +371,8 @@ ${generateQuestionHtml()}
         // Reset code ordering
         document.querySelectorAll('.cq-code-block').forEach(block => {
           block.classList.remove('correct', 'incorrect');
+          block.style.backgroundColor = '';
+          block.style.color = '';
         });
         
         // Reset multiple/single choice
@@ -363,10 +382,37 @@ ${generateQuestionHtml()}
         
         document.querySelectorAll('.cq-option').forEach(option => {
           option.classList.remove('correct', 'incorrect');
+          option.style.backgroundColor = '';
+          option.style.borderColor = '';
         });
         
         document.querySelectorAll('.cq-feedback').forEach(feedback => {
           feedback.style.display = 'none';
+        });
+        
+        // Reset fill gaps
+        document.querySelectorAll('.cq-gap').forEach(gap => {
+          gap.textContent = '...';
+          gap.style.backgroundColor = '';
+          gap.style.color = '';
+          gap.style.borderColor = '';
+        });
+        
+        document.querySelectorAll('.cq-snippet').forEach(snippet => {
+          snippet.style.opacity = '';
+          snippet.style.cursor = '';
+        });
+        
+        // Reset find errors
+        document.querySelectorAll('.cq-error-option input').forEach(checkbox => {
+          checkbox.checked = false;
+        });
+        
+        document.querySelectorAll('.cq-line-number.cq-error-line').forEach(line => {
+          line.style.backgroundColor = '';
+          line.style.color = '';
+          line.style.fontWeight = '';
+          line.style.padding = '';
         });
         
         // Reset fill whole questions
@@ -378,7 +424,8 @@ ${generateQuestionHtml()}
           overlay.style.display = 'none';
         });
         
-        document.querySelectorAll('.cq-show-solution').forEach(btn => {
+        // Reset solution buttons
+        document.querySelectorAll('.cq-show-solution, .cq-show-order-solution, .cq-show-choice-solution, .cq-show-gaps-solution, .cq-show-errors-solution').forEach(btn => {
           btn.style.display = 'inline-block';
         });
         
@@ -388,6 +435,11 @@ ${generateQuestionHtml()}
         
         document.querySelectorAll('.cq-hint').forEach(hint => {
           hint.style.display = 'none';
+        });
+        
+        // Reset hint buttons text
+        document.querySelectorAll('.cq-show-hint').forEach(btn => {
+          btn.textContent = 'Show Hint';
         });
       });
       
@@ -480,6 +532,56 @@ ${generateQuestionHtml()}
                 feedback.style.display = 'block';
               }
             }
+          });
+          
+          // Hide the solution button
+          this.style.display = 'none';
+        });
+      });
+      
+      // Handle show solution for fill gaps questions
+      document.querySelectorAll('.cq-show-gaps-solution').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const question = this.closest('.cq-question');
+          const gaps = question.querySelectorAll('.cq-gap');
+          
+          gaps.forEach(gap => {
+            const answer = gap.getAttribute('data-answer');
+            gap.textContent = answer;
+            gap.style.backgroundColor = '#10b981';
+            gap.style.color = 'white';
+            gap.style.borderColor = '#047857';
+          });
+          
+          // Disable the snippets
+          question.querySelectorAll('.cq-snippet').forEach(snippet => {
+            snippet.style.opacity = '0.5';
+            snippet.style.cursor = 'not-allowed';
+          });
+          
+          // Hide the solution button
+          this.style.display = 'none';
+        });
+      });
+      
+      // Handle show solution for find errors questions
+      document.querySelectorAll('.cq-show-errors-solution').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const question = this.closest('.cq-question');
+          const errorLines = question.querySelectorAll('.cq-line-number.cq-error-line');
+          const errorOptions = question.querySelectorAll('.cq-error-option input');
+          
+          // Highlight error lines
+          errorLines.forEach(line => {
+            line.style.backgroundColor = '#fee2e2';
+            line.style.color = '#ef4444';
+            line.style.fontWeight = 'bold';
+            line.style.padding = '0 8px';
+          });
+          
+          // Check all error checkboxes
+          errorOptions.forEach(checkbox => {
+            checkbox.checked = true;
           });
           
           // Hide the solution button
