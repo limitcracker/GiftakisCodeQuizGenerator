@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import type { QuestionType } from '../../../shared/schema';
+import type { QuestionType } from '@/types';
 import { 
   MoveVertical, 
   Code, 

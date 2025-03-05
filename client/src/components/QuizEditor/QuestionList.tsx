@@ -1,6 +1,6 @@
 import { useQuiz } from '@/context/QuizContext';
 import { Question } from '@/types';
-import type { QuestionType } from '../../../shared/schema';
+import type { QuestionType } from '@/types';
 import CodeOrderQuestion from '@/components/QuestionTypes/CodeOrderQuestion';
 import MultipleChoiceQuestion from '@/components/QuestionTypes/MultipleChoiceQuestion';
 import CodeFillQuestion from '@/components/QuestionTypes/CodeFillQuestion';

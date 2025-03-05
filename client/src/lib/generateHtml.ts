@@ -447,17 +447,53 @@ ${generateQuestionHtml()}
       // Initialize syntax highlighting, etc.
       if (typeof hljs !== 'undefined') hljs.highlightAll();
       
-      // Add event handlers (simplified)
-      // Setup reset functionality
-      document.querySelector('.cq-reset').addEventListener('click', function() {
-        // Reset all inputs, selections, and states
-        console.log('Quiz reset clicked');
+      // Setup character counters for text questions
+      const textInputs = document.querySelectorAll('.cq-text-answer-input');
+      textInputs.forEach(input => {
+        input.addEventListener('input', function() {
+          const counter = this.closest('.cq-text-answer-container').querySelector('.cq-current-length');
+          if (counter) {
+            counter.textContent = this.value.length;
+          }
+        });
+        
+        // Initialize counter with current value (if any)
+        const counter = input.closest('.cq-text-answer-container')?.querySelector('.cq-current-length');
+        if (counter) {
+          counter.textContent = input.value.length;
+        }
       });
       
+      // Add event handlers (simplified)
+      // Setup reset functionality
+      const resetBtn = document.querySelector('.cq-reset');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+          // Reset all inputs, selections, and states
+          console.log('Quiz reset clicked');
+        });
+      }
+      
       // Setup checking functionality
-      document.querySelector('.cq-check').addEventListener('click', function() {
-        // Check all answers
-        console.log('Check answers clicked');
+      const checkBtn = document.querySelector('.cq-check');
+      if (checkBtn) {
+        checkBtn.addEventListener('click', function() {
+          // Check all answers
+          console.log('Check answers clicked');
+        });
+      }
+      
+      // Show/Hide solution for text questions
+      const solutionBtns = document.querySelectorAll('.cq-show-text-solution');
+      solutionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const question = this.closest('.cq-question');
+          const solution = question.querySelector('.cq-text-solution');
+          if (solution) {
+            solution.style.display = solution.style.display === 'none' ? 'block' : 'none';
+            this.textContent = solution.style.display === 'none' ? 'Show Sample Answer' : 'Hide Sample Answer';
+          }
+        });
       });
     });
   </script>

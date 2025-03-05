@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Quiz, Question } from '@/types';
-import { QuestionType } from '@/../../shared/schema';
+import { Quiz, Question, QuestionType } from '@/types';
 
 // Helper to generate a unique ID
 const generateId = (): string => `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
