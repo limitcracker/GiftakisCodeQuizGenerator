@@ -227,6 +227,11 @@ ${generateQuestionHtml()}
     .cq-line-number:hover { background: rgba(255,255,255,0.1); }
     .cq-error-line { color: #ef4444; }
     .cq-error-options { margin: 1rem 0; }
+    .cq-button { background: #0ea5e9; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.875rem; }
+    .cq-button:hover { background: #0284c7; }
+    .cq-show-order-solution, .cq-show-choice-solution { background: #059669; }
+    .cq-show-order-solution:hover, .cq-show-choice-solution:hover { background: #047857; }
+    .cq-code-controls { display: flex; gap: 0.5rem; margin: 1rem 0; }
     .cq-error-option { display: flex; align-items: center; margin-bottom: 0.5rem; }
     .cq-error-option span { margin-left: 0.5rem; }
     .cq-controls { display: flex; gap: 1rem; margin-top: 2rem; }
@@ -411,6 +416,58 @@ ${generateQuestionHtml()}
             hint.style.display = 'none';
             this.textContent = 'Show Hint';
           }
+        });
+      });
+      
+      // Handle show solution for code ordering questions
+      document.querySelectorAll('.cq-show-order-solution').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const question = this.closest('.cq-question');
+          const container = question.querySelector('.cq-order-container');
+          const blocks = Array.from(container.querySelectorAll('.cq-code-block'));
+          
+          // Sort blocks by correctPosition
+          blocks.sort((a, b) => {
+            return parseInt(a.getAttribute('data-position')) - parseInt(b.getAttribute('data-position'));
+          });
+          
+          // Reappend in correct order
+          blocks.forEach(block => {
+            container.appendChild(block);
+            block.style.backgroundColor = '#10b981';
+            block.style.color = 'white';
+          });
+          
+          // Hide the solution button
+          this.style.display = 'none';
+        });
+      });
+      
+      // Handle show solution for multiple/single choice questions
+      document.querySelectorAll('.cq-show-choice-solution').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const question = this.closest('.cq-question');
+          const options = question.querySelectorAll('.cq-option');
+          
+          options.forEach(option => {
+            const input = option.querySelector('input');
+            const isCorrect = input.getAttribute('data-correct') === 'true';
+            
+            if (isCorrect) {
+              option.style.backgroundColor = '#d1fae5';
+              option.style.borderColor = '#10b981';
+              input.checked = true;
+              
+              // Show feedback if available
+              const feedback = option.querySelector('.cq-feedback');
+              if (feedback) {
+                feedback.style.display = 'block';
+              }
+            }
+          });
+          
+          // Hide the solution button
+          this.style.display = 'none';
         });
       });
       
