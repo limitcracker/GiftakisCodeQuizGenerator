@@ -582,28 +582,7 @@ ${generateQuestionHtml()}
     .cq-footer a:hover { 
       color: #9ca3af; 
     }
-    .cq-footer-toggle {
-      background: none;
-      border: none;
-      color: #d1d5db;
-      cursor: pointer;
-      font-size: 0.8rem;
-      line-height: 1;
-      padding: 0;
-      width: 16px;
-      height: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      margin-left: 0.25rem;
-      transition: all 0.15s;
-      opacity: 0.7;
-    }
-    .cq-footer-toggle:hover {
-      background-color: #f3f4f6;
-      color: #9ca3af;
-      opacity: 1;
+    /* Footer styling in exported mode doesn't need toggle button */
     }
   </style>
   
@@ -1134,34 +1113,13 @@ ${generateQuestionHtml()}
         });
       });
       
-      // Footer toggle functionality (only if footer exists)
-      const footerToggle = document.querySelector('.cq-footer-toggle');
+      // Footer functionality (only if footer exists)
       const footer = document.querySelector('.cq-footer');
       
-      // Initialize footer visibility based on localStorage (only if footer exists)
+      // Initialize footer visibility in exported quiz
       if (footer) {
-        const isHidden = localStorage.getItem('cq-footer-hidden') === 'true';
-        footer.style.display = isHidden ? 'none' : 'block';
-        
-        // Add click event for toggle button
-        if (footerToggle) {
-          footerToggle.addEventListener('click', function() {
-            const isCurrentlyVisible = footer.style.display !== 'none';
-            footer.style.display = isCurrentlyVisible ? 'none' : 'block';
-            
-            // Update footer toggle text based on state
-            this.textContent = isCurrentlyVisible ? '+' : '×';
-            this.title = isCurrentlyVisible ? 'Show footer' : 'Hide footer';
-            
-            // Save preference to localStorage
-            localStorage.setItem('cq-footer-hidden', isCurrentlyVisible ? 'true' : 'false');
-          });
-        }
-        
-        // Set initial toggle button text based on state
-        const isHidden = footer.style.display === 'none';
-        footerToggle.textContent = isHidden ? '+' : '×';
-        footerToggle.title = isHidden ? 'Show footer' : 'Hide footer';
+        // Always show footer in exported mode
+        footer.style.display = 'block';
       }
     });
   </script>
@@ -1173,7 +1131,6 @@ ${generateQuestionHtml()}
         <span>Powered by </span>
         <a href="https://giftakis.gr" target="_blank" rel="noopener noreferrer">giftakis.gr</a>
       </small>
-      <button class="cq-footer-toggle" aria-label="Toggle footer visibility" title="Hide footer">×</button>
     </div>
   </div>
   ` : ''}
