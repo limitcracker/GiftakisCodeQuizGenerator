@@ -55,6 +55,7 @@ export default function JigsawQuestion({
 }: JigsawQuestionProps) {
   const [previewActive, setPreviewActive] = useState(false);
   const [showGridEditor, setShowGridEditor] = useState(false);
+  const [showCompiledCode, setShowCompiledCode] = useState(false);
 
   // Initialize jigsawPieces if not present in the question
   if (!question.jigsawPieces) {
@@ -168,6 +169,56 @@ export default function JigsawQuestion({
         piece.id === id ? { ...piece, language } : piece
       )
     });
+  };
+  
+  // Generate the complete code by assembling all jigsaw pieces in correct order
+  const generateCompiledCode = (): { code: string; language: string } => {
+    if (!question.jigsawPieces || !question.gridSize) {
+      return { code: "// No code pieces defined", language: "javascript" };
+    }
+    
+    const { rows, columns } = question.gridSize;
+    
+    // Create a grid to hold pieces
+    const grid: (JigsawPiece | null)[][] = Array(rows).fill(null).map(() => Array(columns).fill(null));
+    
+    // Place pieces in their correct positions in the grid
+    question.jigsawPieces.forEach(piece => {
+      const { correctRow, correctColumn } = piece;
+      // Only place if within grid bounds
+      if (correctRow < rows && correctColumn < columns) {
+        grid[correctRow][correctColumn] = piece;
+      }
+    });
+    
+    // Determine the predominant language
+    const languageMap: Record<string, number> = {};
+    question.jigsawPieces.forEach(piece => {
+      languageMap[piece.language] = (languageMap[piece.language] || 0) + 1;
+    });
+    const language = Object.entries(languageMap).reduce(
+      (a, b) => (a[1] > b[1] ? a : b), 
+      ["javascript", 0]
+    )[0];
+    
+    // Build the code by reading the grid row by row, column by column
+    let compiledCode = "";
+    grid.forEach(row => {
+      row.forEach(piece => {
+        if (piece) {
+          compiledCode += piece.content;
+          // Add a newline if this piece doesn't end with one
+          if (!piece.content.endsWith('\n')) {
+            compiledCode += '\n';
+          }
+        }
+      });
+    });
+    
+    return { 
+      code: compiledCode.trim(), 
+      language 
+    };
   };
 
   const updateGridSize = (property: 'rows' | 'columns', value: number) => {
@@ -504,13 +555,48 @@ export default function JigsawQuestion({
           </div>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-2">
-          <Button 
-            variant="outline"
-            onClick={() => setPreviewActive(!previewActive)}
-          >
-            {previewActive ? 'Hide' : 'Show'} Code Preview
-          </Button>
+        {/* Interactive Code Preview */}
+        <div className="border border-slate-200 rounded-lg p-4 bg-slate-50 mt-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-medium">Complete Code Preview</h3>
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={() => setPreviewActive(!previewActive)}
+              >
+                {previewActive ? 'Hide' : 'Show'} Individual Previews
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCompiledCode(!showCompiledCode)}
+                className="flex items-center"
+              >
+                {showCompiledCode ? 'Hide' : 'Show'} Complete Code
+              </Button>
+            </div>
+          </div>
+          
+          {showCompiledCode && (
+            <div className="mt-4">
+              <div className="bg-slate-100 p-3 rounded-lg mb-3">
+                <p className="text-sm text-slate-600 mb-1">
+                  This is how the complete code will look when all pieces are arranged correctly:
+                </p>
+                <p className="text-xs text-slate-500 italic">
+                  Note: Code is assembled by reading the grid row by row, column by column.
+                </p>
+              </div>
+              <div className="border border-slate-200 rounded overflow-hidden bg-white">
+                <SyntaxHighlighterWrapper 
+                  code={generateCompiledCode().code} 
+                  language={generateCompiledCode().language} 
+                  showLineNumbers={true} 
+                />
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
