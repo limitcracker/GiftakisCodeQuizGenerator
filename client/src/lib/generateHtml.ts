@@ -69,6 +69,25 @@ export function generateHtml(quiz: {
             questionHtml += '</div>\n';
           }
           
+          // Add solution section
+          if (!question.hideSolution && question.codeBlocks && question.codeBlocks.length > 0) {
+            questionHtml += '<div class="cq-solution" style="display: none;">\n';
+            questionHtml += '<h3>Solution:</h3>\n';
+            questionHtml += '<div class="cq-solution-blocks">\n';
+            
+            // Sort blocks by correctPosition before rendering solution
+            const sortedBlocks = [...question.codeBlocks].sort((a, b) => a.correctPosition - b.correctPosition);
+            
+            for (let i = 0; i < sortedBlocks.length; i++) {
+              const block = sortedBlocks[i];
+              questionHtml += '<div class="cq-solution-block">\n';
+              questionHtml += '<pre><code class="language-' + block.language + '">' + escape(block.content) + '</code></pre>\n';
+              questionHtml += '</div>\n';
+            }
+            
+            questionHtml += '</div>\n</div>\n';
+          }
+          
           if (question.explanation) {
             questionHtml += '<div class="cq-explanation">' + escape(question.explanation) + '</div>\n';
           }
@@ -745,6 +764,36 @@ ${generateQuestionHtml()}
           }
         }, { offset: Number.NEGATIVE_INFINITY }).element;
       }
+      
+      // Show/Hide solution for code order questions (toggle between reordering blocks and showing solution div)
+      const orderSolutionBtns = document.querySelectorAll('.cq-show-order-solution');
+      orderSolutionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const question = this.closest('.cq-question');
+          const solution = question.querySelector('.cq-solution');
+          
+          if (solution) {
+            // Toggle solution visibility
+            const isVisible = solution.style.display !== 'none';
+            solution.style.display = isVisible ? 'none' : 'block';
+            this.textContent = isVisible ? 'Show Solution' : 'Hide Solution';
+          } else {
+            // If no solution div, fall back to reordering the blocks
+            const containerElement = question.querySelector('.cq-order-container');
+            const blocks = [...containerElement.querySelectorAll('.cq-code-block')];
+            
+            // Sort blocks by correctPosition attribute
+            blocks.sort((a, b) => {
+              return parseInt(a.dataset.position) - parseInt(b.dataset.position);
+            });
+            
+            // Reorder blocks in the container
+            blocks.forEach(block => {
+              containerElement.appendChild(block);
+            });
+          }
+        });
+      });
       
       // Show/Hide solution for text questions
       const solutionBtns = document.querySelectorAll('.cq-show-text-solution');
