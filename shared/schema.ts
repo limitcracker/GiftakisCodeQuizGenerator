@@ -30,8 +30,7 @@ export const questionTypeEnum = z.enum([
   'find-errors',
   'image-choice',
   'video-choice',
-  'text-short',
-  'text-long',
+  'text',
   'fill-whole'
 ]);
 

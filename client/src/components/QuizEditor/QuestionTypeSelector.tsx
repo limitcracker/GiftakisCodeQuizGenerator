@@ -50,14 +50,9 @@ const questionTypes = [
     label: 'Find Code Errors' 
   },
   { 
-    type: 'text-short' as QuestionType, 
-    icon: AlignLeft, 
-    label: 'Short Answer Text' 
-  },
-  { 
-    type: 'text-long' as QuestionType, 
+    type: 'text' as QuestionType, 
     icon: TextQuote, 
-    label: 'Long Answer Text' 
+    label: 'Text Question' 
   },
   { 
     type: 'image-choice' as QuestionType, 
