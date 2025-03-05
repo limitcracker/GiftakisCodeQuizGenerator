@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { PlusIcon, XIcon, EyeOffIcon } from 'lucide-react';
 import { CodeBlock } from '@/components/CodeBlock';
 import { Question, MultipleChoiceOption } from '@/types';
+import QuestionTimerSettings from '@/components/QuizEditor/QuestionTimerSettings';
 
 interface MultipleChoiceQuestionProps {
   question: Question;
@@ -188,6 +189,12 @@ export default function MultipleChoiceQuestion({
               When enabled, students won't see which answers were correct when they submit their responses.
               This is useful for assessments where you don't want students to see the correct answer.
             </p>
+            
+            {/* Question Timer Settings */}
+            <QuestionTimerSettings 
+              questionId={question.id} 
+              currentTimeLimit={question.timeLimit} 
+            />
           </div>
           
           <div>

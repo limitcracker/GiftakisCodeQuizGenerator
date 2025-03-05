@@ -8,6 +8,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd-next'
 import { PencilIcon, GripIcon, XIcon, PlusIcon, EyeOffIcon } from 'lucide-react';
 import { CodeBlock } from '@/components/CodeBlock';
 import { Question, CodeOrderBlock } from '@/types';
+import QuestionTimerSettings from '@/components/QuizEditor/QuestionTimerSettings';
 
 interface CodeOrderQuestionProps {
   question: Question;
@@ -205,6 +206,12 @@ export default function CodeOrderQuestion({
               When enabled, students won't be able to see the correct order of code blocks in the quiz.
               This is useful for assessments where you don't want students to see the correct answer.
             </p>
+            
+            {/* Question Timer Settings */}
+            <QuestionTimerSettings 
+              questionId={question.id} 
+              currentTimeLimit={question.timeLimit} 
+            />
           </div>
           
           <div>
