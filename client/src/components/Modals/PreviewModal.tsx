@@ -66,16 +66,22 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
         // Override console.log to capture output
         console.log = (...args) => {
           logs.push(args.map(arg => String(arg)).join(' '));
+          // Also call the original console.log to help with debugging
+          originalConsoleLog(...args);
         };
         
         // Execute the code
         try {
           // Using Function constructor to evaluate code safely
-          const result = new Function(completeCode)();
+          // Create a function that runs the code in a function context
+          const execFunc = new Function(completeCode);
           
-          // If the code returns a value, add it to the logs
-          if (result !== undefined) {
-            logs.push(`Return value: ${result}`);
+          // Execute the function
+          execFunc();
+          
+          // If there were no logs, indicate success
+          if (logs.length === 0) {
+            logs.push('Code executed successfully (no output)');
           }
           
           setCodeOutputs(prev => ({
