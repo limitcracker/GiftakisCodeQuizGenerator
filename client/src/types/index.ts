@@ -9,8 +9,7 @@ export type QuestionType =
   | 'image-choice'
   | 'video-choice'
   | 'fill-whole'
-  | 'text-short'
-  | 'text-long';
+  | 'text';
 
 export interface Quiz {
   id: string;
