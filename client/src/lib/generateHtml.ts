@@ -14,6 +14,17 @@ export function generateHtml(quiz: Quiz): string {
       .replace(/'/g, '&#039;');
   };
   
+  // Format the time as MM:SS for the timer display
+  const formatTimeForJs = (seconds: number) => {
+    return `
+      function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return minutes.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+      }
+    `;
+  };
+  
   // Generate HTML for questions
   const generateQuestionHtml = () => {
     return quiz.questions.map((question, index) => {
@@ -227,9 +238,10 @@ export function generateHtml(quiz: Quiz): string {
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
   
-  <div class="cq-quiz">
+  <div class="cq-quiz" ${quiz.timeLimit ? `data-time-limit="${quiz.timeLimit}"` : ''}>
     <h1 class="cq-title">${escape(title)}</h1>
     <p class="cq-description">${escape(description)}</p>
+    ${quiz.timeLimit ? `<div class="cq-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-timer-display"></span></div>` : ''}
     
 ${generateQuestionHtml()}
     
@@ -242,7 +254,10 @@ ${generateQuestionHtml()}
   <style>
     .cq-container { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 0 auto; }
     .cq-title { font-size: 1.8rem; margin-bottom: 0.5rem; }
-    .cq-description { color: #666; margin-bottom: 2rem; }
+    .cq-description { color: #666; margin-bottom: 1rem; }
+    .cq-timer { background: #f0f9ff; border: 1px solid #bae6fd; color: #0c4a6e; padding: 0.5rem 1rem; border-radius: 0.5rem; margin-bottom: 2rem; display: flex; align-items: center; }
+    .cq-timer-icon { margin-right: 0.5rem; font-size: 1.25rem; }
+    .cq-timer-display { font-family: monospace; font-size: 1.1rem; font-weight: 500; }
     .cq-question { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 1.5rem; margin-bottom: 1.5rem; }
     .cq-question-title { font-size: 1.2rem; margin-bottom: 1rem; }
     .cq-code-example, .cq-code-with-gaps, .cq-code-with-errors { background: #1e293b; border-radius: 6px; margin: 1rem 0; overflow: auto; position: relative; }
@@ -296,6 +311,43 @@ ${generateQuestionHtml()}
     document.addEventListener('DOMContentLoaded', function() {
       // Initialize syntax highlighting
       hljs.highlightAll();
+      
+      // Initialize quiz timer if it exists
+      const quizElement = document.querySelector('.cq-quiz');
+      const timeLimit = quizElement.getAttribute('data-time-limit');
+      const timerDisplay = document.querySelector('.cq-timer-display');
+      
+      if (timeLimit && timerDisplay) {
+        let remainingTime = parseInt(timeLimit);
+        
+        // Format time as MM:SS
+        const formatTime = (seconds) => {
+          const minutes = Math.floor(seconds / 60);
+          const secs = seconds % 60;
+          return minutes.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+        };
+        
+        // Initial display
+        timerDisplay.textContent = formatTime(remainingTime);
+        
+        // Start timer
+        const timerInterval = setInterval(() => {
+          remainingTime--;
+          timerDisplay.textContent = formatTime(remainingTime);
+          
+          // Change color when less than 1 minute remains
+          if (remainingTime <= 60) {
+            timerDisplay.style.color = '#ef4444';
+          }
+          
+          // Time's up
+          if (remainingTime <= 0) {
+            clearInterval(timerInterval);
+            alert('Time\'s up! Your quiz session has ended.');
+            document.querySelector('.cq-check').click(); // Auto-check answers
+          }
+        }, 1000);
+      }
       
       // Shuffle code blocks for ordering questions
       document.querySelectorAll('.cq-question[data-type="order"]').forEach(question => {
