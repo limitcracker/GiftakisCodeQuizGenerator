@@ -150,14 +150,14 @@ export function generateHtml(quiz: {
       
       <div class="cq-code-with-gaps">
         <pre><code class="language-${question.language || 'javascript'}">
-${question.gaps?.reduce((result, gap, gapIndex) => {
+${question.gaps?.reduce((result: string, gap: { id: string; answer: string }, gapIndex: number) => {
   return result.replace(`[GAP${gapIndex + 1}]`, `<span class="cq-gap" data-id="${gap.id}" data-answer="${escape(gap.answer)}">[Gap ${gapIndex + 1}]</span>`);
 }, escape(question.codeWithGaps || ''))}
         </code></pre>
       </div>
       
       <div class="cq-snippets">
-        ${question.availableSnippets?.map(snippet => {
+        ${question.availableSnippets?.map((snippet: string) => {
           return `<div class="cq-snippet" draggable="true">${escape(snippet)}</div>`;
         }).join('\n') || ''}
       </div>
@@ -186,8 +186,8 @@ ${question.gaps?.reduce((result, gap, gapIndex) => {
       
       <div class="cq-code-with-errors">
         <div class="cq-line-numbers">
-          ${(question.code || '').split('\n').map((line, i) => {
-            const isError = question.errorLines?.some(errorLine => errorLine.lineNumber === i + 1);
+          ${(question.code || '').split('\n').map((line: string, i: number) => {
+            const isError = question.errorLines?.some((errorLine: { lineNumber: number }) => errorLine.lineNumber === i + 1);
             return `<div class="cq-line-number ${isError ? 'cq-error-line' : ''}" data-line="${i + 1}">${i + 1}</div>`;
           }).join('\n')}
         </div>
@@ -533,17 +533,17 @@ ${generateQuestionHtml()}
       margin: 1.5rem 0;
     }
     .cq-code-block {
-      border: 1px solid #e5e7eb;
-      border-radius: 0.375rem;
+      border: 1px solid ${primaryColor}30;
+      border-radius: ${borderRadius}px;
       padding: 0.5rem;
-      background-color: #f9fafb;
+      background-color: ${backgroundColor};
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
       user-select: none;
     }
     .cq-code-block:hover {
-      border-color: #d1d5db;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-color: ${primaryColor}60;
+      box-shadow: 0 2px 4px ${primaryColor}15;
     }
     .cq-code-block.dragging {
       opacity: 0.8;
@@ -552,18 +552,18 @@ ${generateQuestionHtml()}
       z-index: 10;
     }
     .cq-order-correct .cq-code-block {
-      border-color: #10b981;
-      background-color: #ecfdf5;
+      border-color: ${secondaryColor};
+      background-color: ${secondaryColor}15;
     }
     .cq-order-incorrect .cq-code-block {
       border-color: #ef4444;
       background-color: #fef2f2;
     }
     .cq-show-order-solution {
-      background-color: #2563eb;
+      background-color: ${secondaryColor};
     }
     .cq-show-order-solution:hover {
-      background-color: #1d4ed8;
+      background-color: ${secondaryColor}dd;
     }
     
     /* Text solution styles */
