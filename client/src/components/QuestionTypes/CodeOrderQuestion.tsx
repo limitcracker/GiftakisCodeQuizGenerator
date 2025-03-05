@@ -136,7 +136,7 @@ export default function CodeOrderQuestion({
                   >
                     {codeBlocks.map((block, index) => (
                       <Draggable key={block.id} draggableId={block.id} index={index}>
-                        {(provided: import('react-beautiful-dnd-next').DraggableProvided) => (
+                        {(provided: any) => (
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}

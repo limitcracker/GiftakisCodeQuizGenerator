@@ -319,17 +319,17 @@ ${generateQuestionHtml()}
       // Initialize syntax highlighting
       hljs.highlightAll();
       
-      // Initialize quiz timer if it exists
-      const quizElement = document.querySelector('.cq-quiz');
-      const timeLimit = quizElement.getAttribute('data-time-limit');
-      const timerDisplay = document.querySelector('.cq-timer-display');
-      
       // Format time as MM:SS
       function formatTime(seconds) {
         const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return minutes.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
       }
+      
+      // Initialize quiz timer if it exists
+      const quizElement = document.querySelector('.cq-quiz');
+      const timeLimit = quizElement ? quizElement.getAttribute('data-time-limit') : null;
+      const timerDisplay = document.querySelector('.cq-timer-display');
       
       // Initialize quiz-level timer
       if (timeLimit && timerDisplay) {
@@ -352,7 +352,8 @@ ${generateQuestionHtml()}
           if (remainingTime <= 0) {
             clearInterval(timerInterval);
             alert('Time\'s up! Your quiz session has ended.');
-            document.querySelector('.cq-check').click(); // Auto-check answers
+            const checkButton = document.querySelector('.cq-check');
+            if (checkButton) checkButton.click(); // Auto-check answers
           }
         }, 1000);
       }
