@@ -89,13 +89,37 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
                   <p>{question.title}</p>
                   
                   {question.type === 'code-order' && (
-                    <div className="mt-2 space-y-2">
-                      {(question.codeBlocks || []).map((block, i) => (
-                        <div key={i} className="bg-[#1E293B] text-[#E5E7EB] p-2 rounded font-mono text-sm">
-                          <CodeBlock code={block.content} language={block.language || 'javascript'} />
-                        </div>
-                      ))}
-                    </div>
+                    <>
+                      <div className="mt-2 space-y-2">
+                        {(question.codeBlocks || []).map((block, i) => (
+                          <div key={i} className="bg-[#1E293B] text-[#E5E7EB] p-2 rounded font-mono text-sm">
+                            <CodeBlock code={block.content} language={block.language || 'javascript'} />
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Controls */}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {!question.hideSolution && (
+                          <Button 
+                            className="text-sm bg-green-600 hover:bg-green-700 px-2 py-1 h-auto"
+                            size="sm"
+                          >
+                            Show Solution
+                          </Button>
+                        )}
+                        
+                        {question.hintComment && (
+                          <Button 
+                            variant="outline" 
+                            className="text-sm border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 px-2 py-1 h-auto"
+                            size="sm"
+                          >
+                            Show Hint
+                          </Button>
+                        )}
+                      </div>
+                    </>
                   )}
                   
                   {question.type === 'multiple-choice' && (
@@ -113,6 +137,28 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
                             <span>{option.text}</span>
                           </div>
                         ))}
+                      </div>
+                      
+                      {/* Controls */}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {!question.hideSolution && (
+                          <Button 
+                            className="text-sm bg-green-600 hover:bg-green-700 px-2 py-1 h-auto"
+                            size="sm"
+                          >
+                            Show Solution
+                          </Button>
+                        )}
+                        
+                        {question.hintComment && (
+                          <Button 
+                            variant="outline" 
+                            className="text-sm border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 px-2 py-1 h-auto"
+                            size="sm"
+                          >
+                            Show Hint
+                          </Button>
+                        )}
                       </div>
                     </>
                   )}

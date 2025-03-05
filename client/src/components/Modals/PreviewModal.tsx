@@ -146,13 +146,66 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                   <p className="mb-4">{question.title}</p>
                   
                   {question.type === 'code-order' && (
-                    <div className="space-y-2 mb-4">
-                      {(question.codeBlocks || []).map((block, i) => (
-                        <div key={i} className="bg-[#1E293B] text-[#E5E7EB] p-3 rounded font-mono text-sm border border-blue-500 cursor-move">
-                          <CodeBlock code={block.content} language={block.language || 'javascript'} />
+                    <>
+                      <div className="space-y-2 mb-4">
+                        {(question.codeBlocks || []).map((block, i) => (
+                          <div key={i} className="bg-[#1E293B] text-[#E5E7EB] p-3 rounded font-mono text-sm border border-blue-500 cursor-move">
+                            <CodeBlock code={block.content} language={block.language || 'javascript'} />
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Code order question controls */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {!question.hideSolution && (
+                          <Button 
+                            variant="outline" 
+                            className="text-sm border-green-500 text-green-700 bg-green-50 hover:bg-green-100"
+                            onClick={() => toggleSolution(question.id)}
+                          >
+                            {showSolution[question.id] ? 'Hide Solution' : 'Show Solution'}
+                          </Button>
+                        )}
+                        
+                        {question.hintComment && (
+                          <Button 
+                            variant="outline" 
+                            className="text-sm border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100"
+                            onClick={() => toggleHint(question.id)}
+                          >
+                            {showHint[question.id] ? 'Hide Hint' : 'Show Hint'}
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {showSolution[question.id] && (
+                        <div className="bg-green-50 border border-green-200 p-3 rounded-md mb-4">
+                          <h3 className="text-green-800 text-sm font-medium mb-2">Solution - Correct Order:</h3>
+                          <div className="space-y-2">
+                            {(question.codeBlocks || [])
+                              .slice()
+                              .sort((a, b) => a.correctPosition - b.correctPosition)
+                              .map((block, i) => (
+                                <div key={i} className="bg-[#1E293B] text-[#E5E7EB] p-3 rounded font-mono text-sm border border-green-500">
+                                  <div className="text-xs text-green-500 mb-1">Position {block.correctPosition}</div>
+                                  <CodeBlock code={block.content} language={block.language || 'javascript'} />
+                                </div>
+                              ))
+                            }
+                          </div>
                         </div>
-                      ))}
-                    </div>
+                      )}
+                      
+                      {/* Hint display for code-order */}
+                      {question.hintComment && showHint[question.id] && (
+                        <div className="bg-amber-50 border border-amber-200 p-3 rounded-md mb-4">
+                          <div className="flex items-start">
+                            <span className="text-amber-500 mr-2 text-xl">💡</span>
+                            <p className="text-amber-800 text-sm">{question.hintComment}</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                   
                   {(question.type === 'multiple-choice' || question.type === 'single-choice') && (
@@ -165,18 +218,64 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                       
                       <div className="space-y-3 mb-4">
                         {(question.options || []).map((option, i) => (
-                          <div key={i} className="p-3 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer flex items-start">
+                          <div 
+                            key={i} 
+                            className={`p-3 border rounded-md hover:bg-gray-50 cursor-pointer flex items-start ${
+                              showSolution[question.id] && option.isCorrect 
+                                ? 'border-green-500 bg-green-50' 
+                                : 'border-gray-200'
+                            }`}
+                          >
                             <input 
                               type={question.type === 'multiple-choice' ? 'checkbox' : 'radio'} 
                               name={`question-${question.id}`}
                               className="mt-1 mr-3" 
                             />
-                            <div>
+                            <div className="flex-1">
                               <p className="font-medium">{option.text}</p>
+                              {showSolution[question.id] && option.feedback && (
+                                <p className="text-sm mt-1 text-gray-600">{option.feedback}</p>
+                              )}
+                              {showSolution[question.id] && option.isCorrect && (
+                                <div className="text-green-600 text-sm mt-1">✓ Correct answer</div>
+                              )}
                             </div>
                           </div>
                         ))}
                       </div>
+                      
+                      {/* Multiple choice question controls */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {!question.hideSolution && (
+                          <Button 
+                            variant="outline" 
+                            className="text-sm border-green-500 text-green-700 bg-green-50 hover:bg-green-100"
+                            onClick={() => toggleSolution(question.id)}
+                          >
+                            {showSolution[question.id] ? 'Hide Solution' : 'Show Solution'}
+                          </Button>
+                        )}
+                        
+                        {question.hintComment && (
+                          <Button 
+                            variant="outline" 
+                            className="text-sm border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100"
+                            onClick={() => toggleHint(question.id)}
+                          >
+                            {showHint[question.id] ? 'Hide Hint' : 'Show Hint'}
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {/* Hint display for multiple choice */}
+                      {question.hintComment && showHint[question.id] && (
+                        <div className="bg-amber-50 border border-amber-200 p-3 rounded-md mb-4">
+                          <div className="flex items-start">
+                            <span className="text-amber-500 mr-2 text-xl">💡</span>
+                            <p className="text-amber-800 text-sm">{question.hintComment}</p>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                   
