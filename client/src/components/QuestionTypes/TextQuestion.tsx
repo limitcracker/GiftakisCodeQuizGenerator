@@ -4,9 +4,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Question } from '@/types';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import QuestionTimerSettings from '../QuizEditor/QuestionTimerSettings';
 import { Switch } from '@/components/ui/switch';
 
@@ -33,6 +33,8 @@ export default function TextQuestion({
   const [supportCodeBlocks, setSupportCodeBlocks] = useState(question.supportCodeBlocks || false);
   const [minLength, setMinLength] = useState(question.minLength || 0);
   const [maxLength, setMaxLength] = useState(question.maxLength || 500);
+  // Default to long format if maxLength is greater than 100, otherwise short
+  const [isLongFormat, setIsLongFormat] = useState(question.maxLength ? question.maxLength > 100 : true);
   
   const handleUpdate = useCallback(() => {
     const updatedQuestion: Question = {
@@ -51,6 +53,22 @@ export default function TextQuestion({
     question, title, explanation, textAnswer, hintComment, 
     isMarkdown, supportCodeBlocks, minLength, maxLength, onUpdate
   ]);
+  
+  const handleFormatChange = (format: string) => {
+    const isLong = format === 'long';
+    setIsLongFormat(isLong);
+    
+    // Update default min/max lengths based on format
+    if (isLong && maxLength < 100) {
+      setMaxLength(1000);
+      setMinLength(Math.min(minLength, 50));
+      handleUpdate();
+    } else if (!isLong && maxLength > 100) {
+      setMaxLength(100);
+      setMinLength(Math.min(minLength, 5));
+      handleUpdate();
+    }
+  };
 
   return (
     <Card className="mb-4">
@@ -58,7 +76,7 @@ export default function TextQuestion({
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center">
             <span className="text-sm font-medium mr-2">
-              {question.type === 'text-short' ? 'Short Text Question' : 'Long Text Question'}
+              Text Question
             </span>
           </div>
           <div className="flex space-x-2">
@@ -95,6 +113,24 @@ export default function TextQuestion({
               />
               
               <div className="space-y-2">
+                <Label className="font-semibold">Answer Format</Label>
+                <RadioGroup 
+                  defaultValue={isLongFormat ? 'long' : 'short'} 
+                  onValueChange={handleFormatChange}
+                  className="flex space-x-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="short" id="format-short" />
+                    <Label htmlFor="format-short">Short Answer (Single line)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="long" id="format-long" />
+                    <Label htmlFor="format-long">Long Answer (Multi-line)</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              
+              <div className="space-y-2">
                 <Label className="font-semibold">Character Limits</Label>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
@@ -120,6 +156,11 @@ export default function TextQuestion({
                     />
                   </div>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {isLongFormat 
+                    ? "For long answers, recommended max length is between 500-2000 characters." 
+                    : "For short answers, recommended max length is between 50-100 characters."}
+                </p>
               </div>
               
               <div className="space-y-2">
@@ -161,7 +202,7 @@ export default function TextQuestion({
                 value={textAnswer}
                 onChange={(e) => setTextAnswer(e.target.value)}
                 onBlur={handleUpdate}
-                className="min-h-[200px] font-mono"
+                className={isLongFormat ? "min-h-[200px] font-mono" : "min-h-[80px] font-mono"}
                 placeholder="Enter a sample answer that will be shown when the student clicks 'Show Solution'"
               />
               <p className="text-sm text-muted-foreground">

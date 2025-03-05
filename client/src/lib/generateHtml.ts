@@ -225,14 +225,14 @@ ${escape(question.code || '')}
     </div>`;
           break;
         
-        case 'text-short':
-        case 'text-long':
-          const isLong = question.type === 'text-long';
+        case 'text':
+          // Determine if this is a short or long text question by the maxLength
+          const isLong = (question.maxLength || 0) > 100;
           const minLen = question.minLength || 0;
           const maxLen = question.maxLength || 0;
           const supportsCode = question.supportCodeBlocks || false;
           
-          // Build text input based on question type
+          // Build text input based on format
           let textInputHtml = '';
           if (isLong) {
             textInputHtml = '<textarea class="cq-text-answer-input" rows="8" placeholder="Type your answer here..."';
