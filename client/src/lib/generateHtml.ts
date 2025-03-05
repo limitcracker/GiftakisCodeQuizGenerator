@@ -93,7 +93,9 @@ export function generateHtml(quiz: Quiz): string {
         <pre><code class="language-javascript">${
           escape(question.codeWithGaps || '')
             .replace(/\[GAP_(\d+)\]/g, (_, n) => 
-              `<span class="cq-gap" data-gap-id="${n}">_______</span>`
+              `<span class="cq-gap" data-gap-id="${n}" data-answer="${
+                escape((question.gaps || []).find(g => g.id === n || g.position === parseInt(n))?.answer || '')
+              }">_______</span>`
             )
         }</code></pre>
       </div>
@@ -102,6 +104,20 @@ export function generateHtml(quiz: Quiz): string {
           `<div class="cq-snippet" data-value="${escape(snippet)}">${escape(snippet)}</div>`
         ).join('\n        ')}
       </div>
+      
+      <div class="cq-code-controls">
+        ${!question.hideSolution ? `
+        <button class="cq-button cq-show-gaps-solution">Show Solution</button>
+        ` : ''}
+        ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
+      </div>
+      
+      ${question.hintComment ? `
+      <div class="cq-hint" style="display: none;">
+        <div class="cq-hint-icon">💡</div>
+        <div class="cq-hint-text">${escape(question.hintComment)}</div>
+      </div>` : ''}
+      
       ${question.explanation ? `<div class="cq-explanation">${escape(question.explanation)}</div>` : ''}
     </div>`;
           break;
