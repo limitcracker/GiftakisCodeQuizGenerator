@@ -35,7 +35,7 @@ export function generateHtml(quiz: Quiz): string {
           questionHtml = `
     <div class="cq-question" data-type="order" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
-      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display"></span></div>` : ''}
+      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
       <div class="cq-order-container">
         <!-- Blocks will be shuffled when quiz loads -->
         ${(question.codeBlocks || []).map(block => 
