@@ -3,6 +3,7 @@ import Header from '@/components/Header';
 import QuizInformation from '@/components/QuizEditor/QuizInformation';
 import QuestionTypeSelector from '@/components/QuizEditor/QuestionTypeSelector';
 import QuestionList from '@/components/QuizEditor/QuestionList';
+import TimerSettings from '@/components/QuizEditor/TimerSettings';
 import ExportModal from '@/components/Modals/ExportModal';
 import PreviewModal from '@/components/Modals/PreviewModal';
 import { useQuiz } from '@/context/QuizContext';
@@ -52,6 +53,10 @@ const Home = () => {
                 selectedType={selectedQuestionType}
                 onSelectType={setSelectedQuestionType}
               />
+            </div>
+            
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <TimerSettings />
             </div>
             
             <div className="mt-6 pt-6 border-t border-gray-200">

@@ -161,6 +161,16 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }));
   };
   
+  // Update time limit for a specific question
+  const updateQuestionTimeLimit = (questionId: string, timeLimit: number | null) => {
+    setQuiz(prevQuiz => ({
+      ...prevQuiz,
+      questions: prevQuiz.questions.map(q => 
+        q.id === questionId ? { ...q, timeLimit } : q
+      )
+    }));
+  };
+  
   // Delete a question
   const deleteQuestion = (questionId: string) => {
     setQuiz(prevQuiz => {
@@ -244,8 +254,11 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     setQuizTitle: (title) => setQuiz(prev => ({ ...prev, title })),
     quizDescription: quiz.description,
     setQuizDescription: (description) => setQuiz(prev => ({ ...prev, description })),
+    quizTimeLimit: quiz.timeLimit,
+    setQuizTimeLimit: (timeLimit) => setQuiz(prev => ({ ...prev, timeLimit })),
     addQuestion,
     updateQuestion,
+    updateQuestionTimeLimit,
     deleteQuestion,
     moveQuestionUp,
     moveQuestionDown,
