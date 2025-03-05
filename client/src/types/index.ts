@@ -37,6 +37,11 @@ export interface Question {
   code?: string;
   errorLines?: CodeErrorLine[];
   errors?: string[];
+  
+  // Jigsaw puzzle
+  jigsawPieces?: JigsawPiece[];
+  gridSize?: { rows: number; columns: number };
+  jigsawDescription?: string;
 }
 
 // Code Ordering
@@ -66,6 +71,15 @@ export interface CodeGap {
 export interface CodeErrorLine {
   lineNumber: number;
   code: string;
+}
+
+// Jigsaw Puzzle
+export interface JigsawPiece {
+  id: string;
+  content: string;
+  correctRow: number;
+  correctColumn: number;
+  language: string;
 }
 
 // Code Quiz Storage in Database

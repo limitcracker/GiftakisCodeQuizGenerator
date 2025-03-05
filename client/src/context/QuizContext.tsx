@@ -111,6 +111,16 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           'Line 7: Case sensitivity error (Count)',
           'Line 9: Missing colon after nums declaration' 
         ]
+      }),
+      ...(selectedQuestionType === 'jigsaw' && {
+        jigsawPieces: [
+          { id: generateId(), content: 'function factorial(n) {', correctRow: 0, correctColumn: 0, language: 'javascript' },
+          { id: generateId(), content: '  if (n <= 1) return 1;', correctRow: 1, correctColumn: 0, language: 'javascript' },
+          { id: generateId(), content: '  return n * factorial(n - 1);', correctRow: 2, correctColumn: 0, language: 'javascript' },
+          { id: generateId(), content: '}', correctRow: 3, correctColumn: 0, language: 'javascript' },
+        ],
+        gridSize: { rows: 4, columns: 1 },
+        jigsawDescription: 'Arrange the code blocks to create a valid factorial function'
       })
     };
     

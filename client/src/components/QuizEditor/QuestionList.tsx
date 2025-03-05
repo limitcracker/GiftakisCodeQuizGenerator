@@ -4,6 +4,7 @@ import CodeOrderQuestion from '@/components/QuestionTypes/CodeOrderQuestion';
 import MultipleChoiceQuestion from '@/components/QuestionTypes/MultipleChoiceQuestion';
 import CodeFillQuestion from '@/components/QuestionTypes/CodeFillQuestion';
 import CodeErrorQuestion from '@/components/QuestionTypes/CodeErrorQuestion';
+import JigsawQuestion from '@/components/QuestionTypes/JigsawQuestion';
 
 export default function QuestionList() {
   const { questions, updateQuestion, deleteQuestion, moveQuestionUp, moveQuestionDown } = useQuiz();
@@ -39,8 +40,9 @@ export default function QuestionList() {
       case 'fill-gaps':
         return <CodeFillQuestion key={question.id} {...commonProps} />;
       case 'find-errors':
-        console.log('Rendering find-errors question:', question);
         return <CodeErrorQuestion key={question.id} {...commonProps} />;
+      case 'jigsaw':
+        return <JigsawQuestion key={question.id} {...commonProps} />;
       default:
         console.log('Unknown question type:', question.type);
         return (
