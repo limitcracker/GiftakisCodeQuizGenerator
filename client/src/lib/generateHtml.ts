@@ -103,6 +103,42 @@ export function generateHtml(quiz: Quiz): string {
     </div>`;
           break;
           
+        case 'fill-whole':
+          const language = question.language || 'javascript';
+          questionHtml = `
+    <div class="cq-question" data-type="fill-whole">
+      <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
+      <div class="cq-code-wrapper">
+        <div class="cq-code-prefix">
+          <pre><code class="language-${escape(language)}">${escape(question.codePrefix || '')}</code></pre>
+        </div>
+        <div class="cq-code-solution-container">
+          <textarea class="cq-code-solution-input" rows="4" placeholder="Write your solution code here"></textarea>
+          <div class="cq-code-solution-overlay" style="display: none;">
+            <pre><code class="language-${escape(language)}">${escape(question.solutionCode || '')}</code></pre>
+          </div>
+        </div>
+        <div class="cq-code-suffix">
+          <pre><code class="language-${escape(language)}">${escape(question.codeSuffix || '')}</code></pre>
+        </div>
+      </div>
+      
+      <div class="cq-code-controls">
+        <button class="cq-button cq-show-solution">Show Solution</button>
+        <button class="cq-button cq-hide-solution" style="display: none;">Hide Solution</button>
+        ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
+      </div>
+      
+      ${question.hintComment ? `
+      <div class="cq-hint" style="display: none;">
+        <div class="cq-hint-icon">💡</div>
+        <div class="cq-hint-text">${escape(question.hintComment)}</div>
+      </div>` : ''}
+      
+      ${question.explanation ? `<div class="cq-explanation">${escape(question.explanation)}</div>` : ''}
+    </div>`;
+          break;
+          
         default:
           questionHtml = `
     <div class="cq-question">
@@ -162,6 +198,23 @@ ${generateQuestionHtml()}
     .cq-button.cq-reset { background: #f3f4f6; color: #1f2937; }
     .cq-button.cq-reset:hover { background: #e5e7eb; }
     .cq-explanation { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; font-style: italic; color: #4b5563; }
+    
+    /* Fill Whole question type styles */
+    .cq-code-wrapper { border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; margin: 1rem 0; }
+    .cq-code-prefix, .cq-code-suffix { background: #1e293b; padding: 0.5rem; }
+    .cq-code-solution-container { position: relative; }
+    .cq-code-solution-input { width: 100%; font-family: monospace; border: none; border-top: 1px dashed #e5e7eb; border-bottom: 1px dashed #e5e7eb; padding: 0.75rem; font-size: 14px; min-height: 120px; resize: vertical; background: #f8fafc; }
+    .cq-code-solution-input:focus { outline: none; box-shadow: inset 0 0 0 2px #3b82f6; }
+    .cq-code-solution-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1e293b; z-index: 2; }
+    .cq-code-solution-overlay pre { margin: 0; padding: 0.75rem; }
+    .cq-code-controls { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    .cq-show-solution, .cq-hide-solution { background: #16a34a; }
+    .cq-show-solution:hover, .cq-hide-solution:hover { background: #15803d; }
+    .cq-show-hint { background: #eab308; color: #1e293b; }
+    .cq-show-hint:hover { background: #ca8a04; }
+    .cq-hint { display: flex; align-items: flex-start; background: #fef9c3; border: 1px solid #fde047; padding: 1rem; border-radius: 6px; margin: 1rem 0; }
+    .cq-hint-icon { font-size: 1.25rem; margin-right: 0.75rem; }
+    .cq-hint-text { color: #854d0e; font-size: 0.9rem; }
   </style>
   
   <script>
@@ -256,6 +309,71 @@ ${generateQuestionHtml()}
         
         document.querySelectorAll('.cq-feedback').forEach(feedback => {
           feedback.style.display = 'none';
+        });
+        
+        // Reset fill whole questions
+        document.querySelectorAll('.cq-code-solution-input').forEach(input => {
+          input.value = '';
+        });
+        
+        document.querySelectorAll('.cq-code-solution-overlay').forEach(overlay => {
+          overlay.style.display = 'none';
+        });
+        
+        document.querySelectorAll('.cq-show-solution').forEach(btn => {
+          btn.style.display = 'inline-block';
+        });
+        
+        document.querySelectorAll('.cq-hide-solution').forEach(btn => {
+          btn.style.display = 'none';
+        });
+        
+        document.querySelectorAll('.cq-hint').forEach(hint => {
+          hint.style.display = 'none';
+        });
+      });
+      
+      // Handle show/hide solution for Fill Whole questions
+      document.querySelectorAll('.cq-show-solution').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const question = this.closest('.cq-question');
+          const overlay = question.querySelector('.cq-code-solution-overlay');
+          const hideBtn = question.querySelector('.cq-hide-solution');
+          
+          overlay.style.display = 'block';
+          this.style.display = 'none';
+          hideBtn.style.display = 'inline-block';
+          
+          // Apply syntax highlighting
+          hljs.highlightElement(overlay.querySelector('code'));
+        });
+      });
+      
+      document.querySelectorAll('.cq-hide-solution').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const question = this.closest('.cq-question');
+          const overlay = question.querySelector('.cq-code-solution-overlay');
+          const showBtn = question.querySelector('.cq-show-solution');
+          
+          overlay.style.display = 'none';
+          this.style.display = 'none';
+          showBtn.style.display = 'inline-block';
+        });
+      });
+      
+      // Handle show/hide hints
+      document.querySelectorAll('.cq-show-hint').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const question = this.closest('.cq-question');
+          const hint = question.querySelector('.cq-hint');
+          
+          if (hint.style.display === 'none' || hint.style.display === '') {
+            hint.style.display = 'flex';
+            this.textContent = 'Hide Hint';
+          } else {
+            hint.style.display = 'none';
+            this.textContent = 'Show Hint';
+          }
         });
       });
     });
