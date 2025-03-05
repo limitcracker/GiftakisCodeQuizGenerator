@@ -198,7 +198,7 @@ ${escape(question.code || '')}
       
       <div class="cq-error-options">
         <h3>Select all the errors in the code:</h3>
-        ${question.errors?.map((error, errorIndex) => {
+        ${question.errors?.map((error: string, errorIndex: number) => {
           return `
           <div class="cq-error-option">
             <input type="checkbox" id="error-${index}-${errorIndex}" name="error-${index}-${errorIndex}">
@@ -473,11 +473,11 @@ ${generateQuestionHtml()}
     .cq-result-message { 
       margin: 1rem 0; 
       padding: 0.75rem 1rem; 
-      background: #f0f9ff; 
-      border: 1px solid #bae6fd; 
-      border-radius: 4px; 
+      background: ${primaryColor}15; 
+      border: 1px solid ${primaryColor}40; 
+      border-radius: ${borderRadius}px; 
       font-weight: 500; 
-      color: #0369a1; 
+      color: ${textColor}; 
     }
     .cq-snippets { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
     .cq-snippet { background: white; border: 1px solid #e5e7eb; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: move; font-family: monospace; }
