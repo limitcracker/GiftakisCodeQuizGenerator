@@ -30,6 +30,20 @@ export function generateHtml(quiz: Quiz): string {
           `<div class="cq-code-block" data-position="${block.correctPosition}">${escape(block.content)}</div>`
         ).join('\n        ')}
       </div>
+      
+      <div class="cq-code-controls">
+        ${!question.hideSolution ? `
+        <button class="cq-button cq-show-order-solution">Show Solution</button>
+        ` : ''}
+        ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
+      </div>
+      
+      ${question.hintComment ? `
+      <div class="cq-hint" style="display: none;">
+        <div class="cq-hint-icon">💡</div>
+        <div class="cq-hint-text">${escape(question.hintComment)}</div>
+      </div>` : ''}
+      
       ${question.explanation ? `<div class="cq-explanation">${escape(question.explanation)}</div>` : ''}
     </div>`;
           break;
@@ -53,6 +67,20 @@ export function generateHtml(quiz: Quiz): string {
         </label>`
         ).join('\n        ')}
       </div>
+      
+      <div class="cq-code-controls">
+        ${!question.hideSolution ? `
+        <button class="cq-button cq-show-choice-solution">Show Solution</button>
+        ` : ''}
+        ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
+      </div>
+      
+      ${question.hintComment ? `
+      <div class="cq-hint" style="display: none;">
+        <div class="cq-hint-icon">💡</div>
+        <div class="cq-hint-text">${escape(question.hintComment)}</div>
+      </div>` : ''}
+      
       ${question.explanation ? `<div class="cq-explanation">${escape(question.explanation)}</div>` : ''}
     </div>`;
           break;
