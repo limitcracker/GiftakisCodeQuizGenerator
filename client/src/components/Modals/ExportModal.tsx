@@ -116,6 +116,27 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
                       </div>
                     </>
                   )}
+
+                  {question.type === 'fill-whole' && (
+                    <div className="mt-2">
+                      <div className="border border-gray-200 rounded-md overflow-hidden">
+                        {/* Code Prefix */}
+                        <div className="bg-[#1E293B] p-2 font-mono text-sm text-[#E5E7EB]">
+                          <CodeBlock code={question.codePrefix || ''} language={question.language || 'javascript'} />
+                        </div>
+                        
+                        {/* Solution area */}
+                        <div className="border-t border-b border-dashed border-gray-300 bg-slate-50 p-2">
+                          <div className="font-mono text-xs text-gray-500">Write your solution here</div>
+                        </div>
+                        
+                        {/* Code Suffix */}
+                        <div className="bg-[#1E293B] p-2 font-mono text-sm text-[#E5E7EB]">
+                          <CodeBlock code={question.codeSuffix || ''} language={question.language || 'javascript'} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               

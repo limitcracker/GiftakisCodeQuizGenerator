@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { Quiz } from '@/types';
+import { Quiz, Question } from '@/types';
 import { CodeBlock } from '@/components/CodeBlock';
 
 interface PreviewModalProps {
@@ -9,10 +10,28 @@ interface PreviewModalProps {
 }
 
 export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
+  // Track which questions have solutions and hints shown
+  const [showSolution, setShowSolution] = useState<{[key: string]: boolean}>({});
+  const [showHint, setShowHint] = useState<{[key: string]: boolean}>({});
+  
   const handleClickOutside = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
+  };
+  
+  const toggleSolution = (questionId: string) => {
+    setShowSolution(prev => ({
+      ...prev,
+      [questionId]: !prev[questionId]
+    }));
+  };
+  
+  const toggleHint = (questionId: string) => {
+    setShowHint(prev => ({
+      ...prev,
+      [questionId]: !prev[questionId]
+    }));
   };
 
   return (
@@ -141,6 +160,66 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                                 <label htmlFor={`preview-error-${i}`} className="ml-2 text-sm text-gray-700">{error}</label>
                               </div>
                             ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
+                  {question.type === 'fill-whole' && (
+                    <>
+                      <div className="border border-gray-200 rounded-md overflow-hidden mb-4">
+                        {/* Code Prefix */}
+                        <div className="bg-[#1E293B] p-3 font-mono text-sm text-[#E5E7EB]">
+                          <CodeBlock code={question.codePrefix || ''} language={question.language || 'javascript'} />
+                        </div>
+                        
+                        {/* Solution area */}
+                        <div className="relative border-t border-b border-dashed border-gray-300 bg-slate-50">
+                          {!showSolution[question.id] ? (
+                            <textarea 
+                              className="w-full p-3 font-mono text-sm resize-y min-h-[100px] bg-slate-50"
+                              placeholder="Write your solution here" 
+                            />
+                          ) : (
+                            <div className="w-full bg-[#1E293B] p-3 font-mono text-sm text-[#E5E7EB]">
+                              <CodeBlock code={question.solutionCode || ''} language={question.language || 'javascript'} />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Code Suffix */}
+                        <div className="bg-[#1E293B] p-3 font-mono text-sm text-[#E5E7EB]">
+                          <CodeBlock code={question.codeSuffix || ''} language={question.language || 'javascript'} />
+                        </div>
+                      </div>
+                      
+                      {/* Controls */}
+                      <div className="flex space-x-2 mb-4">
+                        <Button 
+                          className={`text-sm ${showSolution[question.id] ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'}`}
+                          onClick={() => toggleSolution(question.id)}
+                        >
+                          {showSolution[question.id] ? 'Hide Solution' : 'Show Solution'}
+                        </Button>
+                        
+                        {question.hintComment && (
+                          <Button 
+                            variant="outline" 
+                            className="text-sm border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100"
+                            onClick={() => toggleHint(question.id)}
+                          >
+                            {showHint[question.id] ? 'Hide Hint' : 'Show Hint'}
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {/* Hint */}
+                      {question.hintComment && showHint[question.id] && (
+                        <div className="bg-amber-50 border border-amber-200 p-3 rounded-md mb-4">
+                          <div className="flex items-start">
+                            <span className="text-amber-500 mr-2 text-xl">💡</span>
+                            <p className="text-amber-800 text-sm">{question.hintComment}</p>
                           </div>
                         </div>
                       )}
