@@ -1,52 +1,45 @@
-import { Quiz } from '@/types';
-
-export function generateHtml(quiz: Quiz): string {
-  const title = quiz.title || 'Code Quiz';
-  const description = quiz.description || 'Interactive coding quiz';
+export function generateHtml(quiz: {
+  id: string;
+  title: string;
+  description: string;
+  questions: any[];
+  timeLimit?: number | null;
+}): string {
+  const { title, description } = quiz;
   
   // Helper function to escape HTML special characters
-  const escape = (str: string) => {
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+  const escape = (text: string) => {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   };
   
-  // Format the time as MM:SS for the timer display
-  const formatTimeForJs = (seconds: number) => {
-    return `
-      function formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return minutes.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
-      }
-    `;
-  };
-  
-  // Generate HTML for questions
-  const generateQuestionHtml = () => {
+  // Generate HTML for each question
+  const generateQuestionHtml = (): string => {
     return quiz.questions.map((question, index) => {
       let questionHtml = '';
       
       switch (question.type) {
         case 'code-order':
+          // Code ordering question
           questionHtml = `
-    <div class="cq-question" data-type="order" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
+    <div class="cq-question" data-type="${question.type}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
       ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
+      
       <div class="cq-order-container">
-        <!-- Blocks will be shuffled when quiz loads -->
-        ${(question.codeBlocks || []).map(block => 
-          `<div class="cq-code-block" data-position="${block.correctPosition}">${escape(block.content)}</div>`
-        ).join('\n        ')}
+        ${question.codeBlocks?.map(block => {
+          return `<div class="cq-code-block" data-id="${block.id}" data-position="${block.correctPosition}">
+            <pre><code class="language-${block.language}">${escape(block.content)}</code></pre>
+          </div>`;
+        }).join('\n') || ''}
       </div>
       
       <div class="cq-code-controls">
-        ${!question.hideSolution ? `
-        <button class="cq-button cq-show-order-solution">Show Solution</button>
-        ` : ''}
+        ${!question.hideSolution ? `<button class="cq-button cq-show-order-solution">Show Solution</button>` : ''}
         ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
       </div>
       
@@ -62,29 +55,30 @@ export function generateHtml(quiz: Quiz): string {
           
         case 'multiple-choice':
         case 'single-choice':
-          const inputType = question.type === 'multiple-choice' ? 'checkbox' : 'radio';
+          // Multiple/single choice questions
+          const isMultiple = question.type === 'multiple-choice';
           questionHtml = `
     <div class="cq-question" data-type="${question.type}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
       ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
+      
       ${question.codeExample ? `
       <div class="cq-code-example">
-        <pre><code class="language-javascript">${escape(question.codeExample)}</code></pre>
-      </div>` : ''}
+        <pre><code class="language-${question.language || 'javascript'}">${escape(question.codeExample)}</code></pre>
+      </div>`: ''}
+      
       <div class="cq-options">
-        ${(question.options || []).map(option => 
-          `<label class="cq-option">
-          <input type="${inputType}" data-correct="${option.isCorrect}">
-          <span>${escape(option.text)}</span>
-          ${option.feedback ? `<span class="cq-feedback">${escape(option.feedback)}</span>` : ''}
-        </label>`
-        ).join('\n        ')}
+        ${question.options?.map(option => {
+          return `<div class="cq-option">
+            <input type="${isMultiple ? 'checkbox' : 'radio'}" name="question-${index}" id="${option.id}" data-correct="${option.isCorrect}">
+            <span>${escape(option.text)}</span>
+            ${option.feedback ? `<div class="cq-feedback">${escape(option.feedback)}</div>` : ''}
+          </div>`;
+        }).join('\n') || ''}
       </div>
       
       <div class="cq-code-controls">
-        ${!question.hideSolution ? `
-        <button class="cq-button cq-show-choice-solution">Show Solution</button>
-        ` : ''}
+        ${!question.hideSolution ? `<button class="cq-button cq-show-choice-solution">Show Solution</button>` : ''}
         ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
       </div>
       
@@ -99,30 +93,28 @@ export function generateHtml(quiz: Quiz): string {
           break;
           
         case 'fill-gaps':
+          // Fill in the gaps question
           questionHtml = `
-    <div class="cq-question" data-type="fill-gaps" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
+    <div class="cq-question" data-type="${question.type}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
       ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
+      
       <div class="cq-code-with-gaps">
-        <pre><code class="language-javascript">${
-          escape(question.codeWithGaps || '')
-            .replace(/\[GAP_(\d+)\]/g, (_, n) => 
-              `<span class="cq-gap" data-gap-id="${n}" data-answer="${
-                escape((question.gaps || []).find(g => g.id === n || g.position === parseInt(n))?.answer || '')
-              }">_______</span>`
-            )
-        }</code></pre>
+        <pre><code class="language-${question.language || 'javascript'}">
+${question.gaps?.reduce((result, gap, gapIndex) => {
+  return result.replace(`[GAP${gapIndex + 1}]`, `<span class="cq-gap" data-id="${gap.id}" data-answer="${escape(gap.answer)}">[Gap ${gapIndex + 1}]</span>`);
+}, escape(question.codeWithGaps || ''))}
+        </code></pre>
       </div>
+      
       <div class="cq-snippets">
-        ${(question.availableSnippets || []).map(snippet => 
-          `<div class="cq-snippet" data-value="${escape(snippet)}">${escape(snippet)}</div>`
-        ).join('\n        ')}
+        ${question.availableSnippets?.map(snippet => {
+          return `<div class="cq-snippet" draggable="true">${escape(snippet)}</div>`;
+        }).join('\n') || ''}
       </div>
       
       <div class="cq-code-controls">
-        ${!question.hideSolution ? `
-        <button class="cq-button cq-show-gaps-solution">Show Solution</button>
-        ` : ''}
+        ${!question.hideSolution ? `<button class="cq-button cq-show-gaps-solution">Show Solution</button>` : ''}
         ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
       </div>
       
@@ -137,35 +129,37 @@ export function generateHtml(quiz: Quiz): string {
           break;
           
         case 'find-errors':
+          // Find errors question
           questionHtml = `
-    <div class="cq-question" data-type="find-errors" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
+    <div class="cq-question" data-type="${question.type}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
       ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
+      
       <div class="cq-code-with-errors">
-        <pre><code class="language-python">${escape(question.code || '')}</code></pre>
         <div class="cq-line-numbers">
-          ${(question.code || '').split('\n').map((_, i) => {
-            const lineNumber = i + 1;
-            const isError = (question.errorLines || []).some(line => line.lineNumber === lineNumber);
-            const errorLine = (question.errorLines || []).find(line => line.lineNumber === lineNumber);
-            return `<div class="cq-line-number ${isError ? 'cq-error-line' : ''}" data-line="${lineNumber}" ${isError ? `data-error-code="${escape(errorLine?.code || '')}"` : ''}>${lineNumber}</div>`;
-          }).join('\n          ')}
+          ${(question.code || '').split('\n').map((line, i) => {
+            const isError = question.errorLines?.some(errorLine => errorLine.lineNumber === i + 1);
+            return `<div class="cq-line-number ${isError ? 'cq-error-line' : ''}" data-line="${i + 1}">${i + 1}</div>`;
+          }).join('\n')}
         </div>
+        <pre><code class="language-${question.language || 'javascript'}">
+${escape(question.code || '')}
+        </code></pre>
       </div>
+      
       <div class="cq-error-options">
-        <h3>Errors to find:</h3>
-        ${(question.errors || []).map((error, i) => 
-          `<label class="cq-error-option">
-          <input type="checkbox" data-error-id="${i}">
-          <span>${escape(error)}</span>
-        </label>`
-        ).join('\n        ')}
+        <h3>Select all the errors in the code:</h3>
+        ${question.errors?.map((error, errorIndex) => {
+          return `
+          <div class="cq-error-option">
+            <input type="checkbox" id="error-${index}-${errorIndex}" name="error-${index}-${errorIndex}">
+            <span>${escape(error)}</span>
+          </div>`;
+        }).join('\n') || ''}
       </div>
       
       <div class="cq-code-controls">
-        ${!question.hideSolution ? `
-        <button class="cq-button cq-show-errors-solution">Show Solution</button>
-        ` : ''}
+        ${!question.hideSolution ? `<button class="cq-button cq-show-errors-solution">Show Solution</button>` : ''}
         ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
       </div>
       
@@ -180,38 +174,45 @@ export function generateHtml(quiz: Quiz): string {
           break;
           
         case 'fill-whole':
-          const language = question.language || 'javascript';
+          // Fill whole code block
           questionHtml = `
-    <div class="cq-question" data-type="fill-whole" data-language="${escape(language)}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
+    <div class="cq-question" data-type="${question.type}" data-language="${question.language || 'javascript'}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
       ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
+      
       <div class="cq-code-wrapper">
+        ${question.codePrefix ? `
         <div class="cq-code-prefix">
-          <pre><code class="language-${escape(language)}">${escape(question.codePrefix || '')}</code></pre>
+          <pre><code class="language-${question.language || 'javascript'}">${escape(question.codePrefix)}</code></pre>
         </div>
+        ` : ''}
+        
         <div class="cq-code-solution-container">
-          <textarea class="cq-code-solution-input" rows="4" placeholder="Write your solution code here"></textarea>
+          <textarea class="cq-code-solution-input" placeholder="Type your solution here..."></textarea>
           <div class="cq-code-solution-overlay" style="display: none;">
-            <pre><code class="language-${escape(language)}">${escape(question.solutionCode || '')}</code></pre>
+            <pre><code class="language-${question.language || 'javascript'}">${escape(question.solutionCode || '')}</code></pre>
           </div>
         </div>
+        
+        ${question.codeSuffix ? `
         <div class="cq-code-suffix">
-          <pre><code class="language-${escape(language)}">${escape(question.codeSuffix || '')}</code></pre>
+          <pre><code class="language-${question.language || 'javascript'}">${escape(question.codeSuffix)}</code></pre>
         </div>
+        ` : ''}
+      </div>
+      
+      <div class="cq-code-output" style="display: none;">
+        <h3>Output:</h3>
+        <pre class="cq-output-content"></pre>
       </div>
       
       <div class="cq-code-controls">
+        <button class="cq-button cq-run-code">Run Code</button>
         ${!question.hideSolution ? `
         <button class="cq-button cq-show-solution">Show Solution</button>
         <button class="cq-button cq-hide-solution" style="display: none;">Hide Solution</button>
         ` : ''}
-        <button class="cq-button cq-run-code" style="background-color: #4f46e5;">Run Code</button>
         ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
-      </div>
-      
-      <div class="cq-code-output" style="display: none; margin-top: 1rem;">
-        <h3 style="font-size: 0.875rem; text-transform: uppercase; color: #9ca3af; margin-bottom: 0.5rem;">Output:</h3>
-        <pre class="cq-output-content" style="background-color: #1f2937; color: white; padding: 1rem; border-radius: 0.375rem; overflow: auto; max-height: 200px; font-family: monospace; font-size: 0.875rem;"></pre>
       </div>
       
       ${question.hintComment ? `
@@ -223,82 +224,115 @@ export function generateHtml(quiz: Quiz): string {
       ${question.explanation ? `<div class="cq-explanation">${escape(question.explanation)}</div>` : ''}
     </div>`;
           break;
-
+        
         case 'text-short':
         case 'text-long':
           const isLong = question.type === 'text-long';
-          const minLength = question.minLength || 0;
-          const maxLength = question.maxLength || 0;
-          const supportCode = question.supportCodeBlocks || false;
+          const minLen = question.minLength || 0;
+          const maxLen = question.maxLength || 0;
+          const supportsCode = question.supportCodeBlocks || false;
           
-          questionHtml = `
-    <div class="cq-question" data-type="${question.type}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
-      <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
-      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
-      
-      <div class="cq-text-answer-container">
-        ${isLong ? 
-          `<textarea 
-            class="cq-text-answer-input" 
-            rows="8" 
-            placeholder="Type your answer here..."
-            ${minLength ? `minlength="${minLength}"` : ''}
-            ${maxLength ? `maxlength="${maxLength}"` : ''}
-          ></textarea>` : 
-          `<input 
-            type="text" 
-            class="cq-text-answer-input" 
-            placeholder="Type your answer here..."
-            ${minLength ? `minlength="${minLength}"` : ''}
-            ${maxLength ? `maxlength="${maxLength}"` : ''}
-          />`
-        }
-        
-        ${minLength || maxLength ? 
-          `<div class="cq-text-length-counter">
-            <span class="cq-current-length">0</span>
-            ${minLength && maxLength ? 
-              `/ ${minLength}-${maxLength} characters` : 
-              minLength ? 
-                `/ min ${minLength} characters` : 
-                `/ max ${maxLength} characters`
-            }
-          </div>` : ''
-        }
-      </div>
-      
-      ${supportCode ? 
-        `<div class="cq-text-format-controls">
-          <button class="cq-button cq-format-code">Insert Code Block</button>
-        </div>` : ''
-      }
-      
-      <div class="cq-code-controls">
-        ${!question.hideSolution ? `
-        <button class="cq-button cq-show-text-solution">Show Sample Answer</button>
-        ` : ''}
-        ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
-      </div>
-      
-      ${!question.hideSolution ? `
-      <div class="cq-text-solution" style="display: none;">
-        <h3>Sample Answer:</h3>
-        <div class="cq-text-solution-content">
-          ${question.isMarkdown ? 
-            `<div class="cq-markdown-content">${escape(question.textAnswer || '')}</div>` :
-            `<p>${escape(question.textAnswer || '')}</p>`
+          // Build text input based on question type
+          let textInputHtml = '';
+          if (isLong) {
+            textInputHtml = '<textarea class="cq-text-answer-input" rows="8" placeholder="Type your answer here..."';
+            if (minLen) textInputHtml += ' minlength="' + minLen + '"';
+            if (maxLen) textInputHtml += ' maxlength="' + maxLen + '"';
+            textInputHtml += '></textarea>';
+          } else {
+            textInputHtml = '<input type="text" class="cq-text-answer-input" placeholder="Type your answer here..."';
+            if (minLen) textInputHtml += ' minlength="' + minLen + '"';
+            if (maxLen) textInputHtml += ' maxlength="' + maxLen + '"';
+            textInputHtml += ' />';
           }
-        </div>
-      </div>` : ''}
-      
-      ${question.hintComment ? `
-      <div class="cq-hint" style="display: none;">
-        <div class="cq-hint-icon">💡</div>
-        <div class="cq-hint-text">${escape(question.hintComment)}</div>
-      </div>` : ''}
-      
-      ${question.explanation ? `<div class="cq-explanation">${escape(question.explanation)}</div>` : ''}
-    </div>`;
+          
+          // Character counter display
+          let lengthCounterHtml = '';
+          if (minLen || maxLen) {
+            lengthCounterHtml = '<div class="cq-text-length-counter"><span class="cq-current-length">0</span>';
+            if (minLen && maxLen) {
+              lengthCounterHtml += ' / ' + minLen + '-' + maxLen + ' characters';
+            } else if (minLen) {
+              lengthCounterHtml += ' / min ' + minLen + ' characters';
+            } else {
+              lengthCounterHtml += ' / max ' + maxLen + ' characters';
+            }
+            lengthCounterHtml += '</div>';
+          }
+          
+          // Code formatting controls
+          let formatControlsHtml = '';
+          if (supportsCode) {
+            formatControlsHtml = '<div class="cq-text-format-controls">';
+            formatControlsHtml += '<button class="cq-button cq-format-code">Insert Code Block</button>';
+            formatControlsHtml += '</div>';
+          }
+          
+          // Solution display
+          let solutionHtml = '';
+          if (!question.hideSolution) {
+            solutionHtml = '<div class="cq-text-solution" style="display: none;">';
+            solutionHtml += '<h3>Sample Answer:</h3>';
+            solutionHtml += '<div class="cq-text-solution-content">';
+            
+            if (question.isMarkdown) {
+              solutionHtml += '<div class="cq-markdown-content">' + escape(question.textAnswer || '') + '</div>';
+            } else {
+              solutionHtml += '<p>' + escape(question.textAnswer || '') + '</p>';
+            }
+            
+            solutionHtml += '</div></div>';
+          }
+          
+          // Hint section
+          let hintHtml = '';
+          if (question.hintComment) {
+            hintHtml = '<div class="cq-hint" style="display: none;">';
+            hintHtml += '<div class="cq-hint-icon">💡</div>';
+            hintHtml += '<div class="cq-hint-text">' + escape(question.hintComment) + '</div>';
+            hintHtml += '</div>';
+          }
+          
+          // Solution button
+          let solutionButtonHtml = '';
+          if (!question.hideSolution) {
+            solutionButtonHtml = '<button class="cq-button cq-show-text-solution">Show Sample Answer</button>';
+          }
+          
+          // Hint button
+          let hintButtonHtml = '';
+          if (question.hintComment) {
+            hintButtonHtml = '<button class="cq-button cq-show-hint">Show Hint</button>';
+          }
+          
+          // Explanation section
+          let explanationHtml = '';
+          if (question.explanation) {
+            explanationHtml = '<div class="cq-explanation">' + escape(question.explanation) + '</div>';
+          }
+          
+          // Build full question HTML
+          questionHtml = 
+            '<div class="cq-question" data-type="' + question.type + '"' + 
+            (question.timeLimit ? ' data-time-limit="' + question.timeLimit + '"' : '') + 
+            '>\n' +
+            '  <h2 class="cq-question-title">Question ' + (index + 1) + ': ' + escape(question.title) + '</h2>\n' +
+            (question.timeLimit ? 
+              '  <div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>\n' : 
+              '') +
+            '  <div class="cq-text-answer-container">\n' +
+            '    ' + textInputHtml + '\n' +
+            (lengthCounterHtml ? '    ' + lengthCounterHtml + '\n' : '') +
+            '  </div>\n' +
+            (formatControlsHtml ? '  ' + formatControlsHtml + '\n' : '') +
+            '  <div class="cq-code-controls">\n' +
+            (solutionButtonHtml ? '    ' + solutionButtonHtml + '\n' : '') +
+            (hintButtonHtml ? '    ' + hintButtonHtml + '\n' : '') +
+            '  </div>\n' +
+            (solutionHtml ? '  ' + solutionHtml + '\n' : '') +
+            (hintHtml ? '  ' + hintHtml + '\n' : '') +
+            (explanationHtml ? '  ' + explanationHtml + '\n' : '') +
+            '</div>';
           break;
           
         default:
@@ -408,559 +442,22 @@ ${generateQuestionHtml()}
   </style>
   
   <script>
-    // Wait for the DOM to be fully loaded
+    // Client-side code goes here
     document.addEventListener('DOMContentLoaded', function() {
-      console.log("DOM fully loaded, initializing quiz components...");
+      // Initialize syntax highlighting, etc.
+      if (typeof hljs !== 'undefined') hljs.highlightAll();
       
-      // Initialize syntax highlighting
-      if (typeof hljs !== 'undefined') {
-        try {
-          hljs.highlightAll();
-          console.log("Syntax highlighting initialized");
-        } catch (e) {
-          console.error("Error initializing syntax highlighting:", e);
-        }
-      } else {
-        console.warn("Highlight.js not loaded");
-      }
-      
-      // Format time as MM:SS
-      function formatTime(seconds) {
-        if (typeof seconds !== 'number' || isNaN(seconds)) {
-          return "00:00";
-        }
-        const minutes = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return minutes.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
-      }
-      
-      // Timer initialization function - more reliable
-      function initializeTimers() {
-        console.log("Initializing timers...");
-        
-        // Initialize quiz-level timer
-        const quizElement = document.querySelector('.cq-quiz');
-        if (quizElement) {
-          const timeLimit = quizElement.getAttribute('data-time-limit');
-          const timerDisplay = document.querySelector('.cq-timer-display');
-          
-          if (timeLimit && timerDisplay) {
-            let remainingTime = parseInt(timeLimit);
-            console.log("Quiz timer initialized with " + remainingTime + " seconds");
-            
-            // Initial display
-            timerDisplay.textContent = formatTime(remainingTime);
-            
-            // Start timer
-            const timerInterval = setInterval(() => {
-              remainingTime--;
-              timerDisplay.textContent = formatTime(remainingTime);
-              
-              // Change color when less than 1 minute remains
-              if (remainingTime <= 60) {
-                timerDisplay.style.color = '#ef4444';
-              }
-              
-              // Time's up
-              if (remainingTime <= 0) {
-                clearInterval(timerInterval);
-                console.log("Quiz time's up!");
-                alert('Time\'s up! Your quiz session has ended.');
-                const checkButton = document.querySelector('.cq-check');
-                if (checkButton) checkButton.click(); // Auto-check answers
-              }
-            }, 1000);
-          }
-        }
-        
-        // Initialize per-question timers
-        const questionElements = document.querySelectorAll('.cq-question[data-time-limit]');
-        console.log("Found " + questionElements.length + " questions with timers");
-        
-        questionElements.forEach((question, index) => {
-          const timeLimit = parseInt(question.getAttribute('data-time-limit') || '0');
-          const timerDisplay = question.querySelector('.cq-question-timer-display');
-          
-          if (timeLimit && timerDisplay) {
-            let remainingTime = timeLimit;
-            console.log("Question " + (index + 1) + " timer initialized with " + remainingTime + " seconds");
-            
-            // Initial display
-            timerDisplay.textContent = formatTime(remainingTime);
-            
-            // Start timer 
-            const timerInterval = setInterval(() => {
-              remainingTime--;
-              timerDisplay.textContent = formatTime(remainingTime);
-              
-              // Change color when less than 30 seconds remains
-              if (remainingTime <= 30) {
-                timerDisplay.style.color = '#ef4444';
-              }
-              
-              // Time's up
-              if (remainingTime <= 0) {
-                clearInterval(timerInterval);
-                console.log("Question " + (index + 1) + " time's up!");
-                
-                // Make the timer display more visible
-                const timerElement = question.querySelector('.cq-question-timer');
-                if (timerElement) {
-                  timerElement.style.backgroundColor = '#fee2e2';
-                  timerElement.style.borderColor = '#f87171';
-                }
-                
-                // Auto-reveal solution if available based on question type
-                const solutionButton = question.querySelector('.cq-show-solution, .cq-show-order-solution, .cq-show-choice-solution, .cq-show-gaps-solution, .cq-show-errors-solution');
-                if (solutionButton) {
-                  solutionButton.click();
-                }
-              }
-            }, 1000);
-          }
-        });
-      }
-      
-      // Initialize timers with a slight delay to ensure DOM is fully processed
-      setTimeout(initializeTimers, 100);
-      
-      // Shuffle code blocks for ordering questions
-      document.querySelectorAll('.cq-question[data-type="order"]').forEach(question => {
-        const container = question.querySelector('.cq-order-container');
-        const blocks = Array.from(container.querySelectorAll('.cq-code-block'));
-        
-        // Shuffle blocks
-        for (let i = blocks.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          container.appendChild(blocks[j]);
-        }
-      });
-      
-      // Check answers
-      document.querySelector('.cq-check').addEventListener('click', function() {
-        let score = 0;
-        let total = 0;
-        
-        // Code ordering questions
-        document.querySelectorAll('.cq-question[data-type="order"]').forEach(question => {
-          const blocks = Array.from(question.querySelectorAll('.cq-code-block'));
-          let correct = true;
-          
-          blocks.forEach((block, index) => {
-            const correctPosition = parseInt(block.getAttribute('data-position'));
-            if (correctPosition !== index + 1) {
-              correct = false;
-            }
-            block.classList.remove('correct', 'incorrect');
-            block.classList.add(correctPosition === index + 1 ? 'correct' : 'incorrect');
-          });
-          
-          if (correct) score++;
-          total++;
-        });
-        
-        // Multiple/single choice
-        document.querySelectorAll('.cq-question[data-type="multiple-choice"], .cq-question[data-type="single-choice"]').forEach(question => {
-          const options = question.querySelectorAll('.cq-option');
-          let correct = true;
-          
-          options.forEach(option => {
-            const input = option.querySelector('input');
-            const shouldBeChecked = input.getAttribute('data-correct') === 'true';
-            const isChecked = input.checked;
-            
-            if (shouldBeChecked !== isChecked) {
-              correct = false;
-            }
-            
-            option.classList.remove('correct', 'incorrect');
-            if (isChecked) {
-              option.classList.add(shouldBeChecked ? 'correct' : 'incorrect');
-            }
-            
-            // Show feedback if available
-            const feedback = option.querySelector('.cq-feedback');
-            if (feedback && isChecked) {
-              feedback.style.display = 'block';
-            }
-          });
-          
-          if (correct) score++;
-          total++;
-        });
-        
-        // Show score
-        alert("You got " + score + " out of " + total + " questions correct!");
-      });
-      
-      // Reset quiz
+      // Add event handlers (simplified)
+      // Setup reset functionality
       document.querySelector('.cq-reset').addEventListener('click', function() {
-        // Reset code ordering
-        document.querySelectorAll('.cq-code-block').forEach(block => {
-          block.classList.remove('correct', 'incorrect');
-          block.style.backgroundColor = '';
-          block.style.color = '';
-        });
-        
-        // Reset multiple/single choice
-        document.querySelectorAll('.cq-option input').forEach(input => {
-          input.checked = false;
-        });
-        
-        document.querySelectorAll('.cq-option').forEach(option => {
-          option.classList.remove('correct', 'incorrect');
-          option.style.backgroundColor = '';
-          option.style.borderColor = '';
-        });
-        
-        document.querySelectorAll('.cq-feedback').forEach(feedback => {
-          feedback.style.display = 'none';
-        });
-        
-        // Reset fill gaps
-        document.querySelectorAll('.cq-gap').forEach(gap => {
-          gap.textContent = '...';
-          gap.style.backgroundColor = '';
-          gap.style.color = '';
-          gap.style.borderColor = '';
-        });
-        
-        document.querySelectorAll('.cq-snippet').forEach(snippet => {
-          snippet.style.opacity = '';
-          snippet.style.cursor = '';
-        });
-        
-        // Reset find errors
-        document.querySelectorAll('.cq-error-option input').forEach(checkbox => {
-          checkbox.checked = false;
-        });
-        
-        document.querySelectorAll('.cq-line-number.cq-error-line').forEach(line => {
-          line.style.backgroundColor = '';
-          line.style.color = '';
-          line.style.fontWeight = '';
-          line.style.padding = '';
-        });
-        
-        // Reset fill whole questions
-        document.querySelectorAll('.cq-code-solution-input').forEach(input => {
-          input.value = '';
-        });
-        
-        document.querySelectorAll('.cq-code-solution-overlay').forEach(overlay => {
-          overlay.style.display = 'none';
-        });
-        
-        // Reset text questions
-        document.querySelectorAll('.cq-text-answer-input').forEach(input => {
-          input.value = '';
-        });
-        
-        document.querySelectorAll('.cq-text-solution').forEach(solution => {
-          solution.style.display = 'none';
-        });
-        
-        document.querySelectorAll('.cq-current-length').forEach(counter => {
-          counter.textContent = '0';
-        });
-        
-        // Reset solution buttons
-        document.querySelectorAll('.cq-show-solution, .cq-show-order-solution, .cq-show-choice-solution, .cq-show-gaps-solution, .cq-show-errors-solution, .cq-show-text-solution').forEach(btn => {
-          btn.style.display = 'inline-block';
-        });
-        
-        document.querySelectorAll('.cq-hide-solution').forEach(btn => {
-          btn.style.display = 'none';
-        });
-        
-        document.querySelectorAll('.cq-hint').forEach(hint => {
-          hint.style.display = 'none';
-        });
-        
-        // Reset hint buttons text
-        document.querySelectorAll('.cq-show-hint').forEach(btn => {
-          btn.textContent = 'Show Hint';
-        });
+        // Reset all inputs, selections, and states
+        console.log('Quiz reset clicked');
       });
       
-      // Handle show/hide solution for Fill Whole questions
-      document.querySelectorAll('.cq-show-solution').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const question = this.closest('.cq-question');
-          const overlay = question.querySelector('.cq-code-solution-overlay');
-          const hideBtn = question.querySelector('.cq-hide-solution');
-          
-          overlay.style.display = 'block';
-          this.style.display = 'none';
-          hideBtn.style.display = 'inline-block';
-          
-          // Apply syntax highlighting
-          hljs.highlightElement(overlay.querySelector('code'));
-        });
-      });
-      
-      document.querySelectorAll('.cq-hide-solution').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const question = this.closest('.cq-question');
-          const overlay = question.querySelector('.cq-code-solution-overlay');
-          const showBtn = question.querySelector('.cq-show-solution');
-          
-          overlay.style.display = 'none';
-          this.style.display = 'none';
-          showBtn.style.display = 'inline-block';
-        });
-      });
-      
-      // Handle show/hide hints
-      document.querySelectorAll('.cq-show-hint').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const question = this.closest('.cq-question');
-          const hint = question.querySelector('.cq-hint');
-          
-          if (hint.style.display === 'none' || hint.style.display === '') {
-            hint.style.display = 'flex';
-            this.textContent = 'Hide Hint';
-          } else {
-            hint.style.display = 'none';
-            this.textContent = 'Show Hint';
-          }
-        });
-      });
-      
-      // Handle show solution for code ordering questions
-      document.querySelectorAll('.cq-show-order-solution').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const question = this.closest('.cq-question');
-          const container = question.querySelector('.cq-order-container');
-          const blocks = Array.from(container.querySelectorAll('.cq-code-block'));
-          
-          // Sort blocks by correctPosition
-          blocks.sort((a, b) => {
-            return parseInt(a.getAttribute('data-position')) - parseInt(b.getAttribute('data-position'));
-          });
-          
-          // Reappend in correct order
-          blocks.forEach(block => {
-            container.appendChild(block);
-            block.style.backgroundColor = '#10b981';
-            block.style.color = 'white';
-          });
-          
-          // Hide the solution button
-          this.style.display = 'none';
-        });
-      });
-      
-      // Handle show solution for multiple/single choice questions
-      document.querySelectorAll('.cq-show-choice-solution').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const question = this.closest('.cq-question');
-          const options = question.querySelectorAll('.cq-option');
-          
-          options.forEach(option => {
-            const input = option.querySelector('input');
-            const isCorrect = input.getAttribute('data-correct') === 'true';
-            
-            if (isCorrect) {
-              option.style.backgroundColor = '#d1fae5';
-              option.style.borderColor = '#10b981';
-              input.checked = true;
-              
-              // Show feedback if available
-              const feedback = option.querySelector('.cq-feedback');
-              if (feedback) {
-                feedback.style.display = 'block';
-              }
-            }
-          });
-          
-          // Hide the solution button
-          this.style.display = 'none';
-        });
-      });
-      
-      // Handle show solution for fill gaps questions
-      document.querySelectorAll('.cq-show-gaps-solution').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const question = this.closest('.cq-question');
-          const gaps = question.querySelectorAll('.cq-gap');
-          
-          gaps.forEach(gap => {
-            const answer = gap.getAttribute('data-answer');
-            gap.textContent = answer;
-            gap.style.backgroundColor = '#10b981';
-            gap.style.color = 'white';
-            gap.style.borderColor = '#047857';
-          });
-          
-          // Disable the snippets
-          question.querySelectorAll('.cq-snippet').forEach(snippet => {
-            snippet.style.opacity = '0.5';
-            snippet.style.cursor = 'not-allowed';
-          });
-          
-          // Hide the solution button
-          this.style.display = 'none';
-        });
-      });
-      
-      // Handle show solution for find errors questions
-      document.querySelectorAll('.cq-show-errors-solution').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const question = this.closest('.cq-question');
-          const errorLines = question.querySelectorAll('.cq-line-number.cq-error-line');
-          const errorOptions = question.querySelectorAll('.cq-error-option input');
-          
-          // Highlight error lines
-          errorLines.forEach(line => {
-            line.style.backgroundColor = '#fee2e2';
-            line.style.color = '#ef4444';
-            line.style.fontWeight = 'bold';
-            line.style.padding = '0 8px';
-          });
-          
-          // Check all error checkboxes
-          errorOptions.forEach(checkbox => {
-            checkbox.checked = true;
-          });
-          
-          // Hide the solution button
-          this.style.display = 'none';
-        });
-      });
-      
-      // Handle code execution for Fill Whole questions
-      let pyodideInstance = null;
-      let pyodideLoading = false;
-      
-      async function loadPyodide() {
-        if (pyodideInstance) return pyodideInstance;
-        if (pyodideLoading) {
-          // Wait for Pyodide to finish loading
-          return new Promise(resolve => {
-            const checkInterval = setInterval(() => {
-              if (pyodideInstance) {
-                clearInterval(checkInterval);
-                resolve(pyodideInstance);
-              }
-            }, 100);
-          });
-        }
-        
-        pyodideLoading = true;
-        try {
-          // Show loading message in all Python outputs
-          document.querySelectorAll('.cq-question[data-language="python"] .cq-output-content').forEach(output => {
-            output.textContent = 'Loading Python environment... This may take a moment.';
-            output.closest('.cq-code-output').style.display = 'block';
-          });
-          
-          // Load Pyodide
-          pyodideInstance = await loadPyodide();
-          
-          // Clear loading messages
-          document.querySelectorAll('.cq-question[data-language="python"] .cq-output-content').forEach(output => {
-            output.textContent = 'Python environment loaded and ready!';
-          });
-          
-          return pyodideInstance;
-        } catch (error) {
-          console.error('Error loading Pyodide:', error);
-          document.querySelectorAll('.cq-question[data-language="python"] .cq-output-content').forEach(output => {
-            output.textContent = 'Error loading Python environment. Please try again or check console for details.';
-          });
-          pyodideLoading = false;
-          throw error;
-        }
-      }
-      
-      // Execute JavaScript code
-      function executeJavaScript(code, outputElement) {
-        const logs = [];
-        const originalConsoleLog = console.log;
-        
-        try {
-          // Override console.log to capture output
-          console.log = (...args) => {
-            logs.push(args.map(arg => String(arg)).join(' '));
-            originalConsoleLog(...args);
-          };
-          
-          // Execute the code
-          const result = new Function(code)();
-          
-          // If the code returns a value, add it to the logs
-          if (result !== undefined) {
-            logs.push("Return value: " + result);
-          }
-          
-          outputElement.textContent = logs.join('\\n') || 'Code executed successfully (no output)';
-        } catch (error) {
-          outputElement.textContent = "Error: " + error.message;
-        } finally {
-          // Restore the original console.log
-          console.log = originalConsoleLog;
-        }
-      }
-      
-      // Execute Python code
-      async function executePython(code, outputElement) {
-        try {
-          outputElement.textContent = 'Running Python code...';
-          
-          const pyodide = await loadPyodide();
-          
-          // Redirect stdout
-          pyodide.setStdout({
-            write: text => {
-              const currentOutput = outputElement.textContent;
-              outputElement.textContent = currentOutput === 'Running Python code...' ? text : currentOutput + '\\n' + text;
-            }
-          });
-          
-          // Run the code
-          const result = await pyodide.runPythonAsync(code);
-          
-          // If there's a result value and no output yet, show it
-          if (result !== undefined && outputElement.textContent === 'Running Python code...') {
-            outputElement.textContent = String(result);
-          } else if (outputElement.textContent === 'Running Python code...') {
-            outputElement.textContent = 'Code executed successfully (no output)';
-          }
-        } catch (error) {
-          outputElement.textContent = "Error: " + error.message;
-        }
-      }
-      
-      // Add event listeners for run code buttons
-      document.querySelectorAll('.cq-run-code').forEach(btn => {
-        btn.addEventListener('click', async function() {
-          const question = this.closest('.cq-question');
-          const language = question.getAttribute('data-language') || 'javascript';
-          const inputElement = question.querySelector('.cq-code-solution-input');
-          const outputElement = question.querySelector('.cq-output-content');
-          const outputContainer = question.querySelector('.cq-code-output');
-          
-          // Show the output container
-          outputContainer.style.display = 'block';
-          
-          // Get code components
-          const codePrefix = question.querySelector('.cq-code-prefix code').textContent || '';
-          const userCode = inputElement.value || '';
-          const codeSuffix = question.querySelector('.cq-code-suffix code').textContent || '';
-          
-          // Combine the code
-          const completeCode = codePrefix + '\n' + userCode + '\n' + codeSuffix;
-          
-          // Execute based on language
-          if (language === 'javascript') {
-            executeJavaScript(completeCode, outputElement);
-          } else if (language === 'python') {
-            await executePython(completeCode, outputElement);
-          } else {
-            outputElement.textContent = "Language '" + language + "' is not supported for execution.";
-          }
-        });
+      // Setup checking functionality
+      document.querySelector('.cq-check').addEventListener('click', function() {
+        // Check all answers
+        console.log('Check answers clicked');
       });
     });
   </script>
