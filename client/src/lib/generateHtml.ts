@@ -406,7 +406,7 @@ ${escape(question.code || '')}
     <div class="cq-timer-container">
       <div class="cq-timer">
         <span class="cq-timer-icon">⏱️</span> 
-        <span class="cq-timer-display">00:00</span>
+        <span class="cq-timer-display">${Math.floor(quiz.timeLimit / 60)}:${(quiz.timeLimit % 60 < 10 ? '0' + (quiz.timeLimit % 60) : quiz.timeLimit % 60)}</span>
       </div>
       <button class="cq-button cq-start-timer">Start Timer</button>
     </div>` : ''}
@@ -423,13 +423,13 @@ ${generateQuestionHtml()}
     .cq-container { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 0 auto; }
     .cq-title { font-size: 1.8rem; margin-bottom: 0.5rem; }
     .cq-description { color: #666; margin-bottom: 1rem; }
-    .cq-timer-container { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+    .cq-timer-container { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; }
     .cq-timer { background: #f0f9ff; border: 1px solid #bae6fd; color: #0c4a6e; padding: 0.5rem 1rem; border-radius: 0.5rem; display: flex; align-items: center; flex-grow: 1; }
-    .cq-start-timer { background: #0ea5e9; }
+    .cq-start-timer { background: #0ea5e9; font-weight: 500; }
     .cq-start-timer:hover { background: #0284c7; }
     .cq-start-timer.disabled { background: #94a3b8; cursor: not-allowed; }
     .cq-timer-icon { margin-right: 0.5rem; font-size: 1.25rem; }
-    .cq-timer-display { font-family: monospace; font-size: 1.1rem; font-weight: 500; }
+    .cq-timer-display { font-family: monospace; font-size: 1.25rem; font-weight: 600; letter-spacing: 1px; }
     .cq-question-timer { background: #f8f8f8; border: 1px solid #e5e7eb; color: #374151; padding: 0.4rem 0.8rem; border-radius: 0.4rem; margin-bottom: 1rem; display: inline-flex; align-items: center; }
     .cq-question-timer-display { font-family: monospace; font-size: 0.95rem; font-weight: 500; }
     .cq-question { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 1.5rem; margin-bottom: 1.5rem; }
