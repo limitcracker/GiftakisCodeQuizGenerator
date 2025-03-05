@@ -52,10 +52,12 @@ export function generateHtml(quiz: {
           questionHtml += '</div>\n';
           questionHtml += '<div class="cq-code-controls">\n';
           
-          if (!question.hideSolution) {
+          // Only show solution button if solution is available and not explicitly hidden
+          if (!question.hideSolution && question.codeBlocks && question.codeBlocks.length > 0) {
             questionHtml += '<button class="cq-button cq-show-order-solution">Show Solution</button>\n';
           }
           
+          // Only show hint button if hint is available
           if (question.hintComment) {
             questionHtml += '<button class="cq-button cq-show-hint">Show Hint</button>\n';
           }
@@ -70,7 +72,8 @@ export function generateHtml(quiz: {
           }
           
           // Add solution section
-          if (!question.hideSolution && question.codeBlocks && question.codeBlocks.length > 0) {
+          const hasSolution = question.codeBlocks && question.codeBlocks.length > 0;
+          if (!question.hideSolution && hasSolution) {
             questionHtml += '<div class="cq-solution" style="display: none;">\n';
             questionHtml += '<h3>Solution:</h3>\n';
             questionHtml += '<div class="cq-solution-blocks">\n';
@@ -120,7 +123,7 @@ export function generateHtml(quiz: {
       </div>
       
       <div class="cq-code-controls">
-        ${!question.hideSolution ? `<button class="cq-button cq-show-choice-solution">Show Solution</button>` : ''}
+        ${!question.hideSolution && question.options?.some(opt => opt.isCorrect) ? `<button class="cq-button cq-show-choice-solution">Show Solution</button>` : ''}
         ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
       </div>
       
@@ -156,7 +159,7 @@ ${question.gaps?.reduce((result, gap, gapIndex) => {
       </div>
       
       <div class="cq-code-controls">
-        ${!question.hideSolution ? `<button class="cq-button cq-show-gaps-solution">Show Solution</button>` : ''}
+        ${!question.hideSolution && question.gaps && question.gaps.length > 0 ? `<button class="cq-button cq-show-gaps-solution">Show Solution</button>` : ''}
         ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
       </div>
       
@@ -201,7 +204,7 @@ ${escape(question.code || '')}
       </div>
       
       <div class="cq-code-controls">
-        ${!question.hideSolution ? `<button class="cq-button cq-show-errors-solution">Show Solution</button>` : ''}
+        ${!question.hideSolution && question.errorLines && question.errorLines.length > 0 ? `<button class="cq-button cq-show-errors-solution">Show Solution</button>` : ''}
         ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
       </div>
       
@@ -250,7 +253,7 @@ ${escape(question.code || '')}
       
       <div class="cq-code-controls">
         <button class="cq-button cq-run-code">Run Code</button>
-        ${!question.hideSolution ? `
+        ${!question.hideSolution && question.solutionCode ? `
         <button class="cq-button cq-show-solution">Show Solution</button>
         <button class="cq-button cq-hide-solution" style="display: none;">Hide Solution</button>
         ` : ''}
@@ -312,15 +315,15 @@ ${escape(question.code || '')}
           
           // Solution display
           let solutionHtml = '';
-          if (!question.hideSolution) {
+          if (!question.hideSolution && question.textAnswer) {
             solutionHtml = '<div class="cq-text-solution" style="display: none;">';
             solutionHtml += '<h3>Sample Answer:</h3>';
             solutionHtml += '<div class="cq-text-solution-content">';
             
             if (question.isMarkdown) {
-              solutionHtml += '<div class="cq-markdown-content">' + escape(question.textAnswer || '') + '</div>';
+              solutionHtml += '<div class="cq-markdown-content">' + escape(question.textAnswer) + '</div>';
             } else {
-              solutionHtml += '<p>' + escape(question.textAnswer || '') + '</p>';
+              solutionHtml += '<p>' + escape(question.textAnswer) + '</p>';
             }
             
             solutionHtml += '</div></div>';
@@ -337,7 +340,7 @@ ${escape(question.code || '')}
           
           // Solution button
           let solutionButtonHtml = '';
-          if (!question.hideSolution) {
+          if (!question.hideSolution && question.textAnswer) {
             solutionButtonHtml = '<button class="cq-button cq-show-text-solution">Show Sample Answer</button>';
           }
           
