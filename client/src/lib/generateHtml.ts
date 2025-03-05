@@ -66,7 +66,7 @@ export function generateHtml(quiz: Quiz): string {
           questionHtml = `
     <div class="cq-question" data-type="${question.type}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
-      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display"></span></div>` : ''}
+      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
       ${question.codeExample ? `
       <div class="cq-code-example">
         <pre><code class="language-javascript">${escape(question.codeExample)}</code></pre>
@@ -102,7 +102,7 @@ export function generateHtml(quiz: Quiz): string {
           questionHtml = `
     <div class="cq-question" data-type="fill-gaps" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
-      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display"></span></div>` : ''}
+      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
       <div class="cq-code-with-gaps">
         <pre><code class="language-javascript">${
           escape(question.codeWithGaps || '')
@@ -140,7 +140,7 @@ export function generateHtml(quiz: Quiz): string {
           questionHtml = `
     <div class="cq-question" data-type="find-errors" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
-      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display"></span></div>` : ''}
+      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
       <div class="cq-code-with-errors">
         <pre><code class="language-python">${escape(question.code || '')}</code></pre>
         <div class="cq-line-numbers">
@@ -184,7 +184,7 @@ export function generateHtml(quiz: Quiz): string {
           questionHtml = `
     <div class="cq-question" data-type="fill-whole" data-language="${escape(language)}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
-      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display"></span></div>` : ''}
+      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
       <div class="cq-code-wrapper">
         <div class="cq-code-prefix">
           <pre><code class="language-${escape(language)}">${escape(question.codePrefix || '')}</code></pre>
