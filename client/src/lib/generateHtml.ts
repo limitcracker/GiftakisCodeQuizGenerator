@@ -106,7 +106,7 @@ export function generateHtml(quiz: Quiz): string {
         case 'fill-whole':
           const language = question.language || 'javascript';
           questionHtml = `
-    <div class="cq-question" data-type="fill-whole">
+    <div class="cq-question" data-type="fill-whole" data-language="${escape(language)}">
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
       <div class="cq-code-wrapper">
         <div class="cq-code-prefix">
@@ -126,7 +126,13 @@ export function generateHtml(quiz: Quiz): string {
       <div class="cq-code-controls">
         <button class="cq-button cq-show-solution">Show Solution</button>
         <button class="cq-button cq-hide-solution" style="display: none;">Hide Solution</button>
+        <button class="cq-button cq-run-code" style="background-color: #4f46e5;">Run Code</button>
         ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
+      </div>
+      
+      <div class="cq-code-output" style="display: none; margin-top: 1rem;">
+        <h3 style="font-size: 0.875rem; text-transform: uppercase; color: #9ca3af; margin-bottom: 0.5rem;">Output:</h3>
+        <pre class="cq-output-content" style="background-color: #1f2937; color: white; padding: 1rem; border-radius: 0.375rem; overflow: auto; max-height: 200px; font-family: monospace; font-size: 0.875rem;"></pre>
       </div>
       
       ${question.hintComment ? `
@@ -156,6 +162,7 @@ export function generateHtml(quiz: Quiz): string {
 <div id="code-quiz-container" class="cq-container">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
   
   <div class="cq-quiz">
     <h1 class="cq-title">${escape(title)}</h1>

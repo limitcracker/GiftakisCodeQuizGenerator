@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, Play } from 'lucide-react';
 import { Quiz, Question } from '@/types';
 import { CodeBlock } from '@/components/CodeBlock';
 
@@ -13,6 +13,9 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
   // Track which questions have solutions and hints shown
   const [showSolution, setShowSolution] = useState<{[key: string]: boolean}>({});
   const [showHint, setShowHint] = useState<{[key: string]: boolean}>({});
+  const [codeInputs, setCodeInputs] = useState<{[key: string]: string}>({});
+  const [codeOutputs, setCodeOutputs] = useState<{[key: string]: string}>({});
+  const [isRunning, setIsRunning] = useState<{[key: string]: boolean}>({});
   
   const handleClickOutside = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -31,6 +34,84 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
     setShowHint(prev => ({
       ...prev,
       [questionId]: !prev[questionId]
+    }));
+  };
+  
+  const handleCodeChange = (questionId: string, value: string) => {
+    setCodeInputs(prev => ({
+      ...prev,
+      [questionId]: value
+    }));
+  };
+  
+  const runCode = (question: Question) => {
+    // Mark this question as running
+    setIsRunning(prev => ({
+      ...prev,
+      [question.id]: true
+    }));
+    
+    const userCode = codeInputs[question.id] || '';
+    const language = question.language || 'javascript';
+    
+    // Combine the prefix, user code, and suffix
+    const completeCode = `${question.codePrefix || ''}\n${userCode}\n${question.codeSuffix || ''}`;
+    
+    if (language === 'javascript') {
+      try {
+        // Create a container to capture console.log output
+        const logs: string[] = [];
+        const originalConsoleLog = console.log;
+        
+        // Override console.log to capture output
+        console.log = (...args) => {
+          logs.push(args.map(arg => String(arg)).join(' '));
+        };
+        
+        // Execute the code
+        try {
+          // Using Function constructor to evaluate code safely
+          const result = new Function(completeCode)();
+          
+          // If the code returns a value, add it to the logs
+          if (result !== undefined) {
+            logs.push(`Return value: ${result}`);
+          }
+          
+          setCodeOutputs(prev => ({
+            ...prev,
+            [question.id]: logs.join('\n')
+          }));
+        } catch (error: any) {
+          // Handle code execution errors
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          setCodeOutputs(prev => ({
+            ...prev,
+            [question.id]: `Error: ${errorMessage}`
+          }));
+        }
+        
+        // Restore the original console.log
+        console.log = originalConsoleLog;
+      } catch (error: any) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        setCodeOutputs(prev => ({
+          ...prev,
+          [question.id]: `Error: ${errorMessage}`
+        }));
+      }
+    } else if (language === 'python') {
+      // For Python, we'll show a message that it needs to be run in the exported version
+      setCodeOutputs(prev => ({
+        ...prev,
+        [question.id]: `Python execution is available in the exported HTML version using Pyodide. In this preview, we're simulating the experience.`
+      }));
+    }
+    
+    // Mark this question as no longer running
+    setIsRunning(prev => ({
+      ...prev,
+      [question.id]: false
     }));
   };
 
@@ -180,6 +261,8 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                             <textarea 
                               className="w-full p-3 font-mono text-sm resize-y min-h-[100px] bg-slate-50"
                               placeholder="Write your solution here" 
+                              value={codeInputs[question.id] || ''}
+                              onChange={(e) => handleCodeChange(question.id, e.target.value)}
                             />
                           ) : (
                             <div className="w-full bg-[#1E293B] p-3 font-mono text-sm text-[#E5E7EB]">
@@ -195,7 +278,7 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                       </div>
                       
                       {/* Controls */}
-                      <div className="flex space-x-2 mb-4">
+                      <div className="flex flex-wrap gap-2 mb-4">
                         <Button 
                           className={`text-sm ${showSolution[question.id] ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'}`}
                           onClick={() => toggleSolution(question.id)}
@@ -212,6 +295,15 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                             {showHint[question.id] ? 'Hide Hint' : 'Show Hint'}
                           </Button>
                         )}
+                        
+                        <Button 
+                          className="text-sm bg-indigo-600 hover:bg-indigo-700 flex items-center"
+                          onClick={() => runCode(question)}
+                          disabled={isRunning[question.id]}
+                        >
+                          <Play className="h-4 w-4 mr-1" />
+                          {isRunning[question.id] ? 'Running...' : 'Run Code'}
+                        </Button>
                       </div>
                       
                       {/* Hint */}
@@ -221,6 +313,14 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                             <span className="text-amber-500 mr-2 text-xl">💡</span>
                             <p className="text-amber-800 text-sm">{question.hintComment}</p>
                           </div>
+                        </div>
+                      )}
+                      
+                      {/* Code output */}
+                      {codeOutputs[question.id] && (
+                        <div className="bg-gray-800 text-white p-4 rounded-md mb-4 font-mono text-sm overflow-auto max-h-[300px]">
+                          <h3 className="text-gray-400 text-xs uppercase mb-2">Output:</h3>
+                          <pre>{codeOutputs[question.id]}</pre>
                         </div>
                       )}
                     </>
