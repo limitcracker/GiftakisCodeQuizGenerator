@@ -138,12 +138,30 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
           <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
               <h1 className="text-2xl font-bold mb-1">{quiz.title || 'Untitled Quiz'}</h1>
-              <p className="text-gray-600 mb-6">{quiz.description || 'No description provided'}</p>
+              <p className="text-gray-600 mb-3">{quiz.description || 'No description provided'}</p>
+              {quiz.timeLimit && (
+                <div className="bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded flex items-center mb-6">
+                  <span className="mr-2">⏱️</span>
+                  <span className="font-mono">{Math.floor(quiz.timeLimit / 60)}:{(quiz.timeLimit % 60).toString().padStart(2, '0')}</span>
+                  <span className="ml-2 text-sm">(Quiz timer)</span>
+                </div>
+              )}
+              {!quiz.timeLimit && <div className="mb-3"></div>}
               
               {quiz.questions.map((question, index) => (
                 <div key={index} className="border-t border-gray-200 pt-6 mb-6 last:mb-0">
-                  <h2 className="text-lg font-semibold mb-3">Question {index + 1}:</h2>
-                  <p className="mb-4">{question.title}</p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h2 className="text-lg font-semibold mb-3">Question {index + 1}:</h2>
+                      <p className="mb-4">{question.title}</p>
+                    </div>
+                    {question.timeLimit && (
+                      <div className="bg-gray-100 border border-gray-200 text-gray-800 px-2 py-1 rounded flex items-center text-sm">
+                        <span className="mr-2">⏱️</span>
+                        <span className="font-mono">{Math.floor(question.timeLimit / 60)}:{(question.timeLimit % 60).toString().padStart(2, '0')}</span>
+                      </div>
+                    )}
+                  </div>
                   
                   {question.type === 'code-order' && (
                     <>

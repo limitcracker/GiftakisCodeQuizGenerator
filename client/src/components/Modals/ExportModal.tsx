@@ -81,12 +81,25 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
               <div className="border-b pb-3 mb-3">
                 <h2 className="text-xl font-bold">{quiz.title || 'JavaScript Basics Quiz'}</h2>
                 <p className="text-gray-600">{quiz.description || 'Test your JavaScript knowledge with this quiz'}</p>
+                {quiz.timeLimit && (
+                  <div className="bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded flex items-center mt-2">
+                    <span className="mr-2">⏱️</span>
+                    <span className="font-mono">{Math.floor(quiz.timeLimit / 60)}:{(quiz.timeLimit % 60).toString().padStart(2, '0')}</span>
+                  </div>
+                )}
               </div>
               
               {quiz.questions.slice(0, 2).map((question, index) => (
                 <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 mb-3">
                   <h3 className="font-medium mb-2">Question {index + 1}:</h3>
                   <p>{question.title}</p>
+                  
+                  {question.timeLimit && (
+                    <div className="bg-gray-100 border border-gray-200 text-gray-800 px-2 py-1 rounded inline-flex items-center text-sm mt-2">
+                      <span className="mr-2">⏱️</span>
+                      <span className="font-mono">{Math.floor(question.timeLimit / 60)}:{(question.timeLimit % 60).toString().padStart(2, '0')}</span>
+                    </div>
+                  )}
                   
                   {question.type === 'code-order' && (
                     <>
