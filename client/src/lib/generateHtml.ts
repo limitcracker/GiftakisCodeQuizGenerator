@@ -1,3 +1,5 @@
+import { QuizStyle } from '@/types';
+
 export function generateHtml(quiz: {
   id: string;
   title: string;
@@ -5,6 +7,7 @@ export function generateHtml(quiz: {
   questions: any[];
   timeLimit?: number | null;
   hideFooter?: boolean;
+  style?: QuizStyle;
 }): string {
   const { title, description } = quiz;
   
@@ -393,16 +396,36 @@ ${escape(question.code || '')}
     }).join('\n');
   };
   
+  // Get styling options with defaults
+  const style = quiz.style || {};
+  const primaryColor = style.primaryColor || '#3b82f6';
+  const secondaryColor = style.secondaryColor || '#10b981';
+  const backgroundColor = style.backgroundColor || '#ffffff';
+  const textColor = style.textColor || '#1f2937';
+  const fontFamily = style.fontFamily || 'system-ui, -apple-system, sans-serif';
+  const borderRadius = style.borderRadius !== undefined ? style.borderRadius : 6;
+  const buttonStyle = style.buttonStyle || 'rounded';
+  
+  // Generate button border radius based on style
+  let buttonRadius = '4px';
+  if (buttonStyle === 'pill') {
+    buttonRadius = '9999px';
+  } else if (buttonStyle === 'square') {
+    buttonRadius = '0px';
+  } else {
+    buttonRadius = borderRadius + 'px';
+  }
+  
   // Generate the complete HTML
   return `<!-- Code Quiz: ${escape(title)} -->
-<div id="code-quiz-container" class="cq-container">
+<div id="code-quiz-container" class="cq-container" style="font-family: ${fontFamily}; color: ${textColor}; background-color: ${backgroundColor};">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
   
   <div class="cq-quiz" ${quiz.timeLimit ? `data-time-limit="${quiz.timeLimit}"` : ''}>
-    <h1 class="cq-title">${escape(title)}</h1>
-    <p class="cq-description">${escape(description)}</p>
+    <h1 class="cq-title" style="color: ${textColor};">${escape(title)}</h1>
+    <p class="cq-description" style="color: ${textColor};">${escape(description)}</p>
     ${quiz.timeLimit ? `
     <div class="cq-timer-container">
       <div class="cq-timer">
@@ -421,19 +444,19 @@ ${generateQuestionHtml()}
   </div>
   
   <style>
-    .cq-container { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 0 auto; }
+    .cq-container { max-width: 800px; margin: 0 auto; }
     .cq-title { font-size: 1.8rem; margin-bottom: 0.5rem; }
-    .cq-description { color: #666; margin-bottom: 1rem; }
-    .cq-timer-container { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; }
-    .cq-timer { background: #f0f9ff; border: 1px solid #bae6fd; color: #0c4a6e; padding: 0.5rem 1rem; border-radius: 0.5rem; display: flex; align-items: center; flex-grow: 1; }
-    .cq-start-timer { background: #0ea5e9; font-weight: 500; }
-    .cq-start-timer:hover { background: #0284c7; }
+    .cq-description { margin-bottom: 1rem; }
+    .cq-timer-container { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; padding: 1rem; background: ${primaryColor}10; border: 1px solid ${primaryColor}30; border-radius: ${borderRadius}px; }
+    .cq-timer { background: ${primaryColor}20; border: 1px solid ${primaryColor}40; color: ${textColor}; padding: 0.5rem 1rem; border-radius: ${borderRadius}px; display: flex; align-items: center; flex-grow: 1; }
+    .cq-start-timer { background: ${primaryColor}; color: white; font-weight: 500; border-radius: ${buttonRadius}; }
+    .cq-start-timer:hover { background: ${primaryColor}dd; }
     .cq-start-timer.disabled { background: #94a3b8; cursor: not-allowed; }
     .cq-timer-icon { margin-right: 0.5rem; font-size: 1.25rem; }
     .cq-timer-display { font-family: monospace; font-size: 1.25rem; font-weight: 600; letter-spacing: 1px; }
-    .cq-question-timer { background: #f8f8f8; border: 1px solid #e5e7eb; color: #374151; padding: 0.4rem 0.8rem; border-radius: 0.4rem; margin-bottom: 1rem; display: inline-flex; align-items: center; }
+    .cq-question-timer { background: ${primaryColor}10; border: 1px solid ${primaryColor}30; color: ${textColor}; padding: 0.4rem 0.8rem; border-radius: ${borderRadius}px; margin-bottom: 1rem; display: inline-flex; align-items: center; }
     .cq-question-timer-display { font-family: monospace; font-size: 0.95rem; font-weight: 500; }
-    .cq-question { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 1.5rem; margin-bottom: 1.5rem; }
+    .cq-question { background: white; border-radius: ${borderRadius}px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 1.5rem; margin-bottom: 1.5rem; }
     .cq-question-title { font-size: 1.2rem; margin-bottom: 1rem; }
     .cq-code-example, .cq-code-with-gaps, .cq-code-with-errors { background: #1e293b; border-radius: 6px; margin: 1rem 0; overflow: auto; position: relative; }
     .cq-code-block { background: #1e293b; color: #e5e7eb; padding: 0.75rem; border-radius: 6px; margin-bottom: 0.5rem; cursor: move; font-family: monospace; }

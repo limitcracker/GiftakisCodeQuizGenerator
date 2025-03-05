@@ -1,8 +1,19 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Quiz, Question, QuestionType } from '@/types';
+import { Quiz, Question, QuestionType, QuizStyle } from '@/types';
 
 // Helper to generate a unique ID
 const generateId = (): string => `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+// Default style for the quiz
+const defaultQuizStyle: QuizStyle = {
+  primaryColor: '#3b82f6', // Blue
+  secondaryColor: '#10b981', // Green
+  backgroundColor: '#ffffff', // White
+  textColor: '#1f2937', // Dark gray
+  fontFamily: 'Arial, sans-serif',
+  borderRadius: 6,
+  buttonStyle: 'rounded',
+};
 
 // Create a fresh quiz
 const createDefaultQuiz = (): Quiz => ({
@@ -11,7 +22,8 @@ const createDefaultQuiz = (): Quiz => ({
   description: 'Test your JavaScript knowledge with this quiz',
   questions: [],
   timeLimit: null, // No time limit by default
-  hideFooter: false // Show footer by default
+  hideFooter: false, // Show footer by default
+  style: defaultQuizStyle, // Default styling
 });
 
 // Context type
@@ -28,6 +40,9 @@ type QuizContextType = {
   setQuizTimeLimit: (timeLimit: number | null) => void;
   hideFooter: boolean;
   setHideFooter: (hide: boolean) => void;
+  quizStyle: QuizStyle;
+  updateQuizStyle: (style: Partial<QuizStyle>) => void;
+  resetQuizStyle: () => void;
   addQuestion: () => void;
   updateQuestion: (updatedQuestion: Question) => void;
   updateQuestionTimeLimit: (questionId: string, timeLimit: number | null) => void;
@@ -251,6 +266,25 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     });
   };
 
+  // Update quiz style
+  const updateQuizStyle = (style: Partial<QuizStyle>) => {
+    setQuiz(prev => ({ 
+      ...prev, 
+      style: { 
+        ...prev.style, 
+        ...style 
+      } 
+    }));
+  };
+  
+  // Reset quiz style to default
+  const resetQuizStyle = () => {
+    setQuiz(prev => ({ 
+      ...prev, 
+      style: defaultQuizStyle 
+    }));
+  };
+  
   // Reset quiz to default
   const resetQuiz = () => {
     console.log('Resetting quiz to default');
@@ -271,6 +305,9 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     setQuizTimeLimit: (timeLimit) => setQuiz(prev => ({ ...prev, timeLimit })),
     hideFooter: quiz.hideFooter || false,
     setHideFooter: (hide) => setQuiz(prev => ({ ...prev, hideFooter: hide })),
+    quizStyle: quiz.style || defaultQuizStyle,
+    updateQuizStyle,
+    resetQuizStyle,
     addQuestion,
     updateQuestion,
     updateQuestionTimeLimit,

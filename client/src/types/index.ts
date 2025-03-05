@@ -11,6 +11,16 @@ export type QuestionType =
   | 'fill-whole'
   | 'text';
 
+export interface QuizStyle {
+  primaryColor?: string; // Main color for buttons, headers, and UI elements
+  secondaryColor?: string; // Secondary color for accents and highlights
+  backgroundColor?: string; // Background color of the quiz container
+  textColor?: string; // Main text color 
+  fontFamily?: string; // Font family for the quiz (e.g., 'Arial, sans-serif')
+  borderRadius?: number; // Border radius in pixels for rounded corners
+  buttonStyle?: 'rounded' | 'square' | 'pill'; // Button shape style
+}
+
 export interface Quiz {
   id: string;
   title: string;
@@ -18,6 +28,7 @@ export interface Quiz {
   questions: Question[];
   timeLimit: number | null; // Overall quiz time limit in seconds (null = no limit)
   hideFooter?: boolean; // Option to hide the "Powered by" footer
+  style?: QuizStyle; // Custom styling options for the quiz
 }
 
 export interface Question {
