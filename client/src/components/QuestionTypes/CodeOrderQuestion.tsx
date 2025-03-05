@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd-next';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { PencilIcon, GripIcon, XIcon, PlusIcon, EyeOffIcon } from 'lucide-react';
 import { CodeBlock } from '@/components/CodeBlock';
 import { Question, CodeOrderBlock } from '@/types';

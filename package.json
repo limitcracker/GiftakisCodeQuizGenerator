@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^3.9.1",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@neondatabase/serverless": "^0.10.4",
@@ -60,7 +61,6 @@
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "react": "^18.3.1",
-    "react-beautiful-dnd-next": "^11.0.5",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.1",
