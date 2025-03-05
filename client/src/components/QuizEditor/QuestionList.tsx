@@ -1,5 +1,6 @@
 import { useQuiz } from '@/context/QuizContext';
 import { Question } from '@/types';
+import type { QuestionType } from '../../../shared/schema';
 import CodeOrderQuestion from '@/components/QuestionTypes/CodeOrderQuestion';
 import MultipleChoiceQuestion from '@/components/QuestionTypes/MultipleChoiceQuestion';
 import CodeFillQuestion from '@/components/QuestionTypes/CodeFillQuestion';
@@ -47,8 +48,7 @@ export default function QuestionList() {
         return <JigsawQuestion key={question.id} {...commonProps} />;
       case 'fill-whole':
         return <FillWholeQuestion key={question.id} {...commonProps} />;
-      case 'text-short':
-      case 'text-long':
+      case 'text':
         return <TextQuestion key={question.id} {...commonProps} />;
       default:
         console.log('Unknown question type:', question.type);
