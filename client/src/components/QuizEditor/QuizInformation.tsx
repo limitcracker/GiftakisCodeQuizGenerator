@@ -1,6 +1,8 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { useQuiz } from '@/context/QuizContext';
 
 interface QuizInformationProps {
   title: string;
@@ -15,6 +17,8 @@ export default function QuizInformation({
   description,
   setDescription
 }: QuizInformationProps) {
+  const { hideFooter, setHideFooter } = useQuiz();
+  
   return (
     <div className="mb-6">
       <h2 className="text-lg font-semibold mb-4">Quiz Information</h2>
@@ -40,6 +44,16 @@ export default function QuizInformation({
             placeholder="Test your JavaScript knowledge with this quiz"
             rows={3}
           />
+        </div>
+        <div className="flex items-center space-x-2 pt-2">
+          <Switch 
+            id="hide-footer" 
+            checked={hideFooter} 
+            onCheckedChange={setHideFooter} 
+          />
+          <Label htmlFor="hide-footer" className="text-sm font-medium text-gray-700">
+            Hide "Powered by" footer
+          </Label>
         </div>
       </div>
     </div>

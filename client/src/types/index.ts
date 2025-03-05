@@ -17,6 +17,7 @@ export interface Quiz {
   description: string;
   questions: Question[];
   timeLimit: number | null; // Overall quiz time limit in seconds (null = no limit)
+  hideFooter?: boolean; // Option to hide the "Powered by" footer
 }
 
 export interface Question {

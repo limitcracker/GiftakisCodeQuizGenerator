@@ -10,7 +10,8 @@ const createDefaultQuiz = (): Quiz => ({
   title: 'JavaScript Basics Quiz',
   description: 'Test your JavaScript knowledge with this quiz',
   questions: [],
-  timeLimit: null // No time limit by default
+  timeLimit: null, // No time limit by default
+  hideFooter: false // Show footer by default
 });
 
 // Context type
@@ -25,6 +26,8 @@ type QuizContextType = {
   setQuizDescription: (description: string) => void;
   quizTimeLimit: number | null;
   setQuizTimeLimit: (timeLimit: number | null) => void;
+  hideFooter: boolean;
+  setHideFooter: (hide: boolean) => void;
   addQuestion: () => void;
   updateQuestion: (updatedQuestion: Question) => void;
   updateQuestionTimeLimit: (questionId: string, timeLimit: number | null) => void;
@@ -266,6 +269,8 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     setQuizDescription: (description) => setQuiz(prev => ({ ...prev, description })),
     quizTimeLimit: quiz.timeLimit,
     setQuizTimeLimit: (timeLimit) => setQuiz(prev => ({ ...prev, timeLimit })),
+    hideFooter: quiz.hideFooter || false,
+    setHideFooter: (hide) => setQuiz(prev => ({ ...prev, hideFooter: hide })),
     addQuestion,
     updateQuestion,
     updateQuestionTimeLimit,

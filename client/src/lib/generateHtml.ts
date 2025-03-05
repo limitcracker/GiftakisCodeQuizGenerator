@@ -4,6 +4,7 @@ export function generateHtml(quiz: {
   description: string;
   questions: any[];
   timeLimit?: number | null;
+  hideFooter?: boolean;
 }): string {
   const { title, description } = quiz;
   
@@ -113,7 +114,7 @@ export function generateHtml(quiz: {
       </div>`: ''}
       
       <div class="cq-options">
-        ${question.options?.map(option => {
+        ${question.options?.map((option: { id: string; isCorrect: boolean; text: string; feedback?: string }) => {
           return `<div class="cq-option">
             <input type="${isMultiple ? 'checkbox' : 'radio'}" name="question-${index}" id="${option.id}" data-correct="${option.isCorrect}">
             <span>${escape(option.text)}</span>
@@ -123,7 +124,7 @@ export function generateHtml(quiz: {
       </div>
       
       <div class="cq-code-controls">
-        ${!question.hideSolution && question.options?.some(opt => opt.isCorrect) ? `<button class="cq-button cq-show-choice-solution">Show Solution</button>` : ''}
+        ${!question.hideSolution && question.options?.some((opt: { isCorrect: boolean }) => opt.isCorrect) ? `<button class="cq-button cq-show-choice-solution">Show Solution</button>` : ''}
         ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
       </div>
       
@@ -1133,20 +1134,18 @@ ${generateQuestionHtml()}
         });
       });
       
-      // Footer toggle functionality
+      // Footer toggle functionality (only if footer exists)
       const footerToggle = document.querySelector('.cq-footer-toggle');
       const footer = document.querySelector('.cq-footer');
       
-      // Initialize footer visibility based on localStorage
+      // Initialize footer visibility based on localStorage (only if footer exists)
       if (footer) {
         const isHidden = localStorage.getItem('cq-footer-hidden') === 'true';
         footer.style.display = isHidden ? 'none' : 'block';
-      }
-      
-      // Add click event for toggle button
-      if (footerToggle) {
-        footerToggle.addEventListener('click', function() {
-          if (footer) {
+        
+        // Add click event for toggle button
+        if (footerToggle) {
+          footerToggle.addEventListener('click', function() {
             const isCurrentlyVisible = footer.style.display !== 'none';
             footer.style.display = isCurrentlyVisible ? 'none' : 'block';
             
@@ -1156,19 +1155,18 @@ ${generateQuestionHtml()}
             
             // Save preference to localStorage
             localStorage.setItem('cq-footer-hidden', isCurrentlyVisible ? 'true' : 'false');
-          }
-        });
+          });
+        }
         
         // Set initial toggle button text based on state
-        if (footer) {
-          const isHidden = footer.style.display === 'none';
-          footerToggle.textContent = isHidden ? '+' : '×';
-          footerToggle.title = isHidden ? 'Show footer' : 'Hide footer';
-        }
+        const isHidden = footer.style.display === 'none';
+        footerToggle.textContent = isHidden ? '+' : '×';
+        footerToggle.title = isHidden ? 'Show footer' : 'Hide footer';
       }
     });
   </script>
   
+  ${!quiz.hideFooter ? `
   <div class="cq-footer">
     <div class="cq-footer-content">
       <small>
@@ -1178,5 +1176,6 @@ ${generateQuestionHtml()}
       <button class="cq-footer-toggle" aria-label="Toggle footer visibility" title="Hide footer">×</button>
     </div>
   </div>
+  ` : ''}
 </div>`;
 }
