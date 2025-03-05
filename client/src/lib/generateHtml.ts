@@ -428,6 +428,19 @@ ${generateQuestionHtml()}
     .cq-option span { margin-left: 0.5rem; }
     .cq-feedback { display: none; margin-top: 0.25rem; font-size: 0.875rem; color: #059669; }
     .cq-gap { background: #374151; padding: 0.25rem 0.5rem; border-radius: 0.25rem; border: 1px dashed #6b7280; color: white; }
+    
+    /* Check Answer Styling */
+    .cq-correct { border-left: 4px solid #10b981; background-color: #ecfdf5; }
+    .cq-incorrect { border-left: 4px solid #ef4444; background-color: #fef2f2; }
+    .cq-result-message { 
+      margin: 1rem 0; 
+      padding: 0.75rem 1rem; 
+      background: #f0f9ff; 
+      border: 1px solid #bae6fd; 
+      border-radius: 4px; 
+      font-weight: 500; 
+      color: #0369a1; 
+    }
     .cq-snippets { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
     .cq-snippet { background: white; border: 1px solid #e5e7eb; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: move; font-family: monospace; }
     .cq-line-numbers { position: absolute; top: 0; left: 0; padding: 1rem 0.5rem; text-align: right; user-select: none; }
@@ -621,7 +634,7 @@ ${generateQuestionHtml()}
           let correctCount = 0;
           let totalCount = 0;
           
-          questions.forEach(question => {
+          questions.forEach(function(question) {
             const questionType = question.getAttribute('data-type');
             let isCorrect = false;
             
@@ -629,31 +642,37 @@ ${generateQuestionHtml()}
               case 'multiple-choice':
               case 'single-choice':
                 // For choice questions, check if correct options are selected
-                const options = question.querySelectorAll('.cq-option');
-                let allCorrect = true;
+                const choiceOptions = question.querySelectorAll('.cq-option');
+                let allChoiceCorrect = true;
                 
-                options.forEach(option => {
+                choiceOptions.forEach(function(option) {
                   const input = option.querySelector('input');
-                  const shouldBeChecked = input.dataset.correct === 'true';
-                  
-                  if (input.checked !== shouldBeChecked) {
-                    allCorrect = false;
+                  if (input) {
+                    const shouldBeChecked = input.getAttribute('data-correct') === 'true';
+                    
+                    if ((input.checked !== true && shouldBeChecked) || 
+                        (input.checked === true && !shouldBeChecked)) {
+                      allChoiceCorrect = false;
+                    }
                   }
                 });
                 
-                isCorrect = allCorrect;
+                isCorrect = allChoiceCorrect;
                 break;
                 
               case 'code-order':
                 // For code order, check if blocks are in correct order
-                const blocks = [...question.querySelectorAll('.cq-code-block')];
+                const codeBlocks = Array.from(question.querySelectorAll('.cq-code-block'));
                 let orderedCorrectly = true;
                 
-                for (let i = 0; i < blocks.length; i++) {
-                  const correctPos = parseInt(blocks[i].dataset.position);
-                  if (correctPos !== i + 1) {
-                    orderedCorrectly = false;
-                    break;
+                for (let i = 0; i < codeBlocks.length; i++) {
+                  const block = codeBlocks[i];
+                  if (block && block.getAttribute('data-position')) {
+                    const correctPos = parseInt(block.getAttribute('data-position') || '0');
+                    if (correctPos !== i + 1) {
+                      orderedCorrectly = false;
+                      break;
+                    }
                   }
                 }
                 
@@ -665,8 +684,9 @@ ${generateQuestionHtml()}
                 const gaps = question.querySelectorAll('.cq-gap');
                 let allGapsCorrect = true;
                 
-                gaps.forEach(gap => {
-                  if (gap.textContent !== gap.dataset.answer) {
+                gaps.forEach(function(gap) {
+                  const answer = gap.getAttribute('data-answer');
+                  if (gap.textContent !== answer) {
                     allGapsCorrect = false;
                   }
                 });
@@ -679,7 +699,7 @@ ${generateQuestionHtml()}
                 const errorOptions = question.querySelectorAll('.cq-error-option input');
                 let allErrorsCorrect = true;
                 
-                errorOptions.forEach(option => {
+                errorOptions.forEach(function(option) {
                   // All error options should be checked in a correct solution
                   if (!option.checked) {
                     allErrorsCorrect = false;
@@ -689,7 +709,35 @@ ${generateQuestionHtml()}
                 isCorrect = allErrorsCorrect;
                 break;
                 
-              // Add other question types as needed
+              case 'text':
+                // For text questions, check if the input matches the expected answer exactly
+                const textInput = question.querySelector('.cq-text-answer-input');
+                const expectedAnswer = question.querySelector('.cq-text-solution-content');
+                
+                if (textInput && expectedAnswer) {
+                  // Get text content without HTML
+                  const plainExpectedText = expectedAnswer.textContent || '';
+                  const userInputText = textInput.value || '';
+                  
+                  // Simple exact match check - could be enhanced with more sophisticated comparison
+                  isCorrect = userInputText.trim() === plainExpectedText.trim();
+                }
+                break;
+                
+              case 'fill-whole':
+                // For fill whole code blocks
+                const solutionInput = question.querySelector('.cq-code-solution-input');
+                const solutionOverlay = question.querySelector('.cq-code-solution-overlay code');
+                
+                if (solutionInput && solutionOverlay) {
+                  const expectedCode = solutionOverlay.textContent || '';
+                  const userCode = solutionInput.value || '';
+                  
+                  // Compare with whitespace normalization
+                  isCorrect = userCode.trim().replace(/\s+/g, ' ') === 
+                              expectedCode.trim().replace(/\s+/g, ' ');
+                }
+                break;
             }
             
             // Apply visual feedback
@@ -706,16 +754,21 @@ ${generateQuestionHtml()}
           });
           
           // Show result message
-          const resultElement = document.querySelector('.cq-result-message') || 
-            (() => {
-              const el = document.createElement('div');
-              el.className = 'cq-result-message';
-              document.querySelector('.cq-controls').insertBefore(el, checkBtn.nextSibling);
-              return el;
-            })();
+          let resultElement = document.querySelector('.cq-result-message');
           
-          resultElement.textContent = 'Score: ' + correctCount + '/' + totalCount + ' correct';
-          resultElement.style.display = 'block';
+          if (!resultElement) {
+            resultElement = document.createElement('div');
+            resultElement.className = 'cq-result-message';
+            const controlsDiv = document.querySelector('.cq-controls');
+            if (controlsDiv) {
+              controlsDiv.insertBefore(resultElement, checkBtn.nextSibling);
+            }
+          }
+          
+          if (resultElement) {
+            resultElement.textContent = 'Score: ' + correctCount + '/' + totalCount + ' correct';
+            resultElement.style.display = 'block';
+          }
         });
       }
       
@@ -840,9 +893,11 @@ ${generateQuestionHtml()}
       
       // Show/Hide solution for code order questions (toggle between reordering blocks and showing solution div)
       const orderSolutionBtns = document.querySelectorAll('.cq-show-order-solution');
-      orderSolutionBtns.forEach(btn => {
+      orderSolutionBtns.forEach(function(btn) {
         btn.addEventListener('click', function() {
           const question = this.closest('.cq-question');
+          if (!question) return;
+          
           const solution = question.querySelector('.cq-solution');
           
           if (solution) {
@@ -853,15 +908,19 @@ ${generateQuestionHtml()}
           } else {
             // If no solution div, fall back to reordering the blocks
             const containerElement = question.querySelector('.cq-order-container');
-            const blocks = [...containerElement.querySelectorAll('.cq-code-block')];
+            if (!containerElement) return;
+            
+            const blocks = Array.from(containerElement.querySelectorAll('.cq-code-block'));
             
             // Sort blocks by correctPosition attribute
-            blocks.sort((a, b) => {
-              return parseInt(a.dataset.position) - parseInt(b.dataset.position);
+            blocks.sort(function(a, b) {
+              const posA = parseInt(a.getAttribute('data-position') || '0');
+              const posB = parseInt(b.getAttribute('data-position') || '0');
+              return posA - posB;
             });
             
             // Reorder blocks in the container
-            blocks.forEach(block => {
+            blocks.forEach(function(block) {
               containerElement.appendChild(block);
             });
           }
@@ -870,22 +929,26 @@ ${generateQuestionHtml()}
       
       // Show/Hide solution for multiple/single choice questions
       const choiceSolutionBtns = document.querySelectorAll('.cq-show-choice-solution');
-      choiceSolutionBtns.forEach(btn => {
+      choiceSolutionBtns.forEach(function(btn) {
         btn.addEventListener('click', function() {
           const question = this.closest('.cq-question');
+          if (!question) return;
+          
           const options = question.querySelectorAll('.cq-option');
           
           // First click: Show correct answers
           if (this.textContent === 'Show Solution') {
-            options.forEach(option => {
+            options.forEach(function(option) {
               const input = option.querySelector('input');
-              const isCorrect = input.dataset.correct === 'true';
-              
-              if (isCorrect) {
-                input.checked = true;
-                option.classList.add('cq-correct-option');
-              } else {
-                input.checked = false;
+              if (input) {
+                const isCorrect = input.getAttribute('data-correct') === 'true';
+                
+                if (isCorrect) {
+                  input.checked = true;
+                  option.classList.add('cq-correct-option');
+                } else {
+                  input.checked = false;
+                }
               }
             });
             
@@ -893,10 +956,12 @@ ${generateQuestionHtml()}
           } 
           // Second click: Reset to original state
           else {
-            options.forEach(option => {
+            options.forEach(function(option) {
               const input = option.querySelector('input');
-              input.checked = false;
-              option.classList.remove('cq-correct-option');
+              if (input) {
+                input.checked = false;
+                option.classList.remove('cq-correct-option');
+              }
             });
             
             this.textContent = 'Show Solution';
@@ -906,21 +971,27 @@ ${generateQuestionHtml()}
       
       // Show/Hide solution for fill-gaps questions
       const gapsSolutionBtns = document.querySelectorAll('.cq-show-gaps-solution');
-      gapsSolutionBtns.forEach(btn => {
+      gapsSolutionBtns.forEach(function(btn) {
         btn.addEventListener('click', function() {
           const question = this.closest('.cq-question');
+          if (!question) return;
+          
           const gaps = question.querySelectorAll('.cq-gap');
           
           // Toggle solution visibility
           if (this.textContent === 'Show Solution') {
-            gaps.forEach(gap => {
-              gap.textContent = gap.dataset.answer;
-              gap.classList.add('cq-gap-solved');
+            gaps.forEach(function(gap) {
+              const answer = gap.getAttribute('data-answer');
+              if (answer) {
+                gap.textContent = answer;
+                gap.classList.add('cq-gap-solved');
+              }
             });
             this.textContent = 'Hide Solution';
           } else {
-            gaps.forEach(gap => {
-              gap.textContent = '[Gap ' + (Array.from(gaps).indexOf(gap) + 1) + ']';
+            const gapsArray = Array.from(gaps);
+            gapsArray.forEach(function(gap, index) {
+              gap.textContent = '[Gap ' + (index + 1) + ']';
               gap.classList.remove('cq-gap-solved');
             });
             this.textContent = 'Show Solution';
@@ -930,34 +1001,44 @@ ${generateQuestionHtml()}
       
       // Show/Hide solution for find-errors questions
       const errorsSolutionBtns = document.querySelectorAll('.cq-show-errors-solution');
-      errorsSolutionBtns.forEach(btn => {
+      errorsSolutionBtns.forEach(function(btn) {
         btn.addEventListener('click', function() {
           const question = this.closest('.cq-question');
+          if (!question) return;
+          
           const errorOptions = question.querySelectorAll('.cq-error-option input');
           const errorLines = question.querySelectorAll('.cq-line-number.cq-error-line');
           
           // Toggle solution visibility
           if (this.textContent === 'Show Solution') {
             // Check all correct errors
-            errorOptions.forEach(option => {
-              option.checked = true;
+            errorOptions.forEach(function(option) {
+              if (option) {
+                option.checked = true;
+              }
             });
             
             // Highlight error lines
-            errorLines.forEach(line => {
-              line.classList.add('cq-error-line-highlighted');
+            errorLines.forEach(function(line) {
+              if (line) {
+                line.classList.add('cq-error-line-highlighted');
+              }
             });
             
             this.textContent = 'Hide Solution';
           } else {
             // Uncheck all errors
-            errorOptions.forEach(option => {
-              option.checked = false;
+            errorOptions.forEach(function(option) {
+              if (option) {
+                option.checked = false;
+              }
             });
             
             // Remove highlighting
-            errorLines.forEach(line => {
-              line.classList.remove('cq-error-line-highlighted');
+            errorLines.forEach(function(line) {
+              if (line) {
+                line.classList.remove('cq-error-line-highlighted');
+              }
             });
             
             this.textContent = 'Show Solution';
@@ -967,13 +1048,16 @@ ${generateQuestionHtml()}
       
       // Show/Hide solution for text questions
       const textSolutionBtns = document.querySelectorAll('.cq-show-text-solution');
-      textSolutionBtns.forEach(btn => {
+      textSolutionBtns.forEach(function(btn) {
         btn.addEventListener('click', function() {
           const question = this.closest('.cq-question');
+          if (!question) return;
+          
           const solution = question.querySelector('.cq-text-solution');
           if (solution) {
-            solution.style.display = solution.style.display === 'none' ? 'block' : 'none';
-            this.textContent = solution.style.display === 'none' ? 'Show Sample Answer' : 'Hide Sample Answer';
+            const isCurrentlyVisible = solution.style.display !== 'none';
+            solution.style.display = isCurrentlyVisible ? 'none' : 'block';
+            this.textContent = isCurrentlyVisible ? 'Show Sample Answer' : 'Hide Sample Answer';
           }
         });
       });
