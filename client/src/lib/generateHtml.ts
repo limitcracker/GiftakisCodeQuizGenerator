@@ -486,18 +486,16 @@ ${generateQuestionHtml()}
     .cq-line-number:hover { background: rgba(255,255,255,0.1); }
     .cq-error-line { color: #ef4444; }
     .cq-error-options { margin: 1rem 0; }
-    .cq-button { background: #0ea5e9; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.875rem; }
-    .cq-button:hover { background: #0284c7; }
-    .cq-show-order-solution, .cq-show-choice-solution, .cq-show-gaps-solution, .cq-show-errors-solution { background: #059669; }
-    .cq-show-order-solution:hover, .cq-show-choice-solution:hover, .cq-show-gaps-solution:hover, .cq-show-errors-solution:hover { background: #047857; }
+    .cq-button { padding: 0.5rem 1rem; background: ${primaryColor}; color: white; border: none; border-radius: ${buttonRadius}; cursor: pointer; font-size: 0.875rem; }
+    .cq-button:hover { background: ${primaryColor}dd; }
+    .cq-show-order-solution, .cq-show-choice-solution, .cq-show-gaps-solution, .cq-show-errors-solution { background: ${secondaryColor}; }
+    .cq-show-order-solution:hover, .cq-show-choice-solution:hover, .cq-show-gaps-solution:hover, .cq-show-errors-solution:hover { background: ${secondaryColor}dd; }
     .cq-code-controls { display: flex; gap: 0.5rem; margin: 1rem 0; }
     .cq-error-option { display: flex; align-items: center; margin-bottom: 0.5rem; }
     .cq-error-option span { margin-left: 0.5rem; }
     .cq-controls { display: flex; gap: 1rem; margin-top: 2rem; }
-    .cq-button { padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    .cq-button:hover { background: #2563eb; }
-    .cq-button.cq-reset { background: #f3f4f6; color: #1f2937; }
-    .cq-button.cq-reset:hover { background: #e5e7eb; }
+    .cq-button.cq-reset { background: ${secondaryColor}20; color: ${textColor}; }
+    .cq-button.cq-reset:hover { background: ${secondaryColor}40; }
     .cq-explanation { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; font-style: italic; color: #4b5563; }
     
     /* Fill Whole question type styles */
@@ -509,23 +507,23 @@ ${generateQuestionHtml()}
     .cq-code-solution-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1e293b; z-index: 2; }
     .cq-code-solution-overlay pre { margin: 0; padding: 0.75rem; }
     .cq-code-controls { display: flex; gap: 0.5rem; margin-top: 1rem; }
-    .cq-show-solution, .cq-hide-solution { background: #16a34a; }
-    .cq-show-solution:hover, .cq-hide-solution:hover { background: #15803d; }
-    .cq-show-hint { background: #eab308; color: #1e293b; }
-    .cq-show-hint:hover { background: #ca8a04; }
-    .cq-hint { display: flex; align-items: flex-start; background: #fef9c3; border: 1px solid #fde047; padding: 1rem; border-radius: 6px; margin: 1rem 0; }
+    .cq-show-solution, .cq-hide-solution { background: ${secondaryColor}; }
+    .cq-show-solution:hover, .cq-hide-solution:hover { background: ${secondaryColor}dd; }
+    .cq-show-hint { background: ${secondaryColor}80; color: ${textColor}; }
+    .cq-show-hint:hover { background: ${secondaryColor}b0; }
+    .cq-hint { display: flex; align-items: flex-start; background: ${primaryColor}10; border: 1px solid ${primaryColor}30; padding: 1rem; border-radius: ${borderRadius}px; margin: 1rem 0; }
     .cq-hint-icon { font-size: 1.25rem; margin-right: 0.75rem; }
-    .cq-hint-text { color: #854d0e; font-size: 0.9rem; }
+    .cq-hint-text { color: ${textColor}; font-size: 0.9rem; }
     
     /* Text Question type styles */
     .cq-text-answer-container { margin: 1rem 0; }
-    .cq-text-answer-input { width: 100%; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0.75rem; font-family: -apple-system, system-ui, sans-serif; font-size: 14px; background: #f8fafc; }
-    .cq-text-answer-input:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
+    .cq-text-answer-input { width: 100%; border: 1px solid ${primaryColor}20; border-radius: ${borderRadius}px; padding: 0.75rem; font-family: ${fontFamily}; font-size: 14px; background: ${backgroundColor}; }
+    .cq-text-answer-input:focus { outline: none; box-shadow: 0 0 0 2px ${primaryColor}; }
     textarea.cq-text-answer-input { min-height: 150px; resize: vertical; }
     .cq-text-length-counter { margin-top: 0.5rem; color: #6b7280; font-size: 0.875rem; text-align: right; }
     .cq-text-format-controls { margin: 0.5rem 0; }
-    .cq-format-code { background: #3b82f6; }
-    .cq-format-code:hover { background: #2563eb; }
+    .cq-format-code { background: ${primaryColor}; }
+    .cq-format-code:hover { background: ${primaryColor}dd; }
     
     /* Code order question styles */
     .cq-order-container { 
@@ -569,21 +567,21 @@ ${generateQuestionHtml()}
     }
     
     /* Text solution styles */
-    .cq-text-solution { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 1rem; margin: 1rem 0; }
-    .cq-text-solution h3 { font-size: 1rem; color: #166534; margin-top: 0; margin-bottom: 0.5rem; }
-    .cq-text-solution-content { color: #166534; font-size: 0.9rem; }
-    .cq-markdown-content { white-space: pre-wrap; font-family: -apple-system, system-ui, sans-serif; }
-    .cq-show-text-solution { background: #16a34a; }
-    .cq-show-text-solution:hover { background: #15803d; }
+    .cq-text-solution { background: ${secondaryColor}10; border: 1px solid ${secondaryColor}40; border-radius: ${borderRadius}px; padding: 1rem; margin: 1rem 0; }
+    .cq-text-solution h3 { font-size: 1rem; color: ${textColor}; margin-top: 0; margin-bottom: 0.5rem; }
+    .cq-text-solution-content { color: ${textColor}; font-size: 0.9rem; }
+    .cq-markdown-content { white-space: pre-wrap; font-family: ${fontFamily}; }
+    .cq-show-text-solution { background: ${secondaryColor}; }
+    .cq-show-text-solution:hover { background: ${secondaryColor}dd; }
     
     /* Footer styles */
     .cq-footer { 
       margin-top: 2.5rem; 
-      border-top: 1px solid #f3f4f6; 
+      border-top: 1px solid ${primaryColor}20; 
       padding-top: 0.5rem; 
       text-align: center;
       font-size: 0.65rem;
-      color: #d1d5db;
+      color: ${textColor}80;
     }
     .cq-footer-content { 
       display: flex;
@@ -597,13 +595,13 @@ ${generateQuestionHtml()}
       gap: 0.25rem;
     }
     .cq-footer a { 
-      color: #d1d5db; 
+      color: ${primaryColor}; 
       text-decoration: none;
       transition: color 0.15s;
       font-weight: 500;
     }
     .cq-footer a:hover { 
-      color: #9ca3af; 
+      color: ${primaryColor}aa; 
     }
     /* Footer styling in exported mode doesn't need toggle button */
     }
