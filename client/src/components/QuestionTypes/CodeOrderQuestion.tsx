@@ -129,14 +129,14 @@ export default function CodeOrderQuestion({
             
             <DragDropContext onDragEnd={onDragEnd}>
               <Droppable droppableId="codeBlocks">
-                {(provided) => (
+                {(provided: any) => (
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
                   >
                     {codeBlocks.map((block, index) => (
                       <Draggable key={block.id} draggableId={block.id} index={index}>
-                        {(provided) => (
+                        {(provided: import('react-beautiful-dnd-next').DraggableProvided) => (
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}

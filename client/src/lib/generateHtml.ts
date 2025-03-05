@@ -368,36 +368,25 @@ ${generateQuestionHtml()}
           // Initial display
           timerDisplay.textContent = formatTime(remainingTime);
           
-          // Start timer only when quiz starts or immediately if no quiz timer
-          const startQuestionTimer = () => {
-            const timerInterval = setInterval(() => {
-              remainingTime--;
-              timerDisplay.textContent = formatTime(remainingTime);
-              
-              // Change color when less than 30 seconds remains
-              if (remainingTime <= 30) {
-                timerDisplay.style.color = '#ef4444';
-              }
-              
-              // Time's up
-              if (remainingTime <= 0) {
-                clearInterval(timerInterval);
-                // Make the timer display more visible
-                const timerElement = question.querySelector('.cq-question-timer');
-                if (timerElement) {
-                  timerElement.style.backgroundColor = '#fee2e2';
-                  timerElement.style.borderColor = '#f87171';
-                }
-              }
-            }, 1000);
+          // Start timer 
+          const timerInterval = setInterval(() => {
+            remainingTime--;
+            timerDisplay.textContent = formatTime(remainingTime);
             
-            return timerInterval;
-          };
-          
-          // If no quiz timer, start question timer immediately
-          if (!document.querySelector('.cq-timer-display')) {
-            startQuestionTimer();
-          }
+            // Change color when less than 30 seconds remains
+            if (remainingTime <= 30) {
+              timerDisplay.style.color = '#ef4444';
+            }
+            
+            // Time's up
+            if (remainingTime <= 0) {
+              clearInterval(timerInterval);
+              // Make the timer display more visible
+              const timerElement = question.querySelector('.cq-question-timer');
+              if (timerElement) {
+                timerElement.style.backgroundColor = '#fee2e2';
+                timerElement.style.borderColor = '#f87171';
+              }
               
               // Auto-reveal solution if available based on question type
               const solutionButton = question.querySelector('.cq-show-solution, .cq-show-order-solution, .cq-show-choice-solution, .cq-show-gaps-solution, .cq-show-errors-solution');

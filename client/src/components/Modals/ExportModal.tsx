@@ -91,15 +91,18 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
               
               {quiz.questions.slice(0, 2).map((question, index) => (
                 <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 mb-3">
-                  <h3 className="font-medium mb-2">Question {index + 1}:</h3>
-                  <p>{question.title}</p>
-                  
-                  {question.timeLimit && (
-                    <div className="bg-gray-100 border border-gray-200 text-gray-800 px-2 py-1 rounded inline-flex items-center text-sm mt-2">
-                      <span className="mr-2">⏱️</span>
-                      <span className="font-mono">{Math.floor(question.timeLimit / 60)}:{(question.timeLimit % 60).toString().padStart(2, '0')}</span>
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-medium">Question {index + 1}:</h3>
+                      <p>{question.title}</p>
                     </div>
-                  )}
+                    {question.timeLimit && (
+                      <div className="bg-gray-100 border border-gray-200 text-gray-800 px-2 py-1 rounded flex items-center text-sm">
+                        <span className="mr-2">⏱️</span>
+                        <span className="font-mono">{Math.floor(question.timeLimit / 60)}:{(question.timeLimit % 60).toString().padStart(2, '0')}</span>
+                      </div>
+                    )}
+                  </div>
                   
                   {question.type === 'code-order' && (
                     <>
