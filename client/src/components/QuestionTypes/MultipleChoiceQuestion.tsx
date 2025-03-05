@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { PlusIcon, XIcon } from 'lucide-react';
+import { PlusIcon, XIcon, EyeOffIcon } from 'lucide-react';
 import { CodeBlock } from '@/components/CodeBlock';
 import { Question, MultipleChoiceOption } from '@/types';
 
@@ -161,6 +161,33 @@ export default function MultipleChoiceQuestion({
                 </div>
               </div>
             ))}
+          </div>
+          
+          {/* Question Settings */}
+          <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-2">
+            <h3 className="font-medium">Question Settings</h3>
+            
+            <div className="flex items-center space-x-2">
+              <input 
+                type="checkbox" 
+                id={`hideSolution-${question.id}`}
+                checked={question.hideSolution || false}
+                onChange={(e) => onUpdate({
+                  ...question,
+                  hideSolution: e.target.checked
+                })}
+                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <Label htmlFor={`hideSolution-${question.id}`} className="text-sm cursor-pointer flex items-center">
+                <EyeOffIcon className="h-3 w-3 mr-1 text-gray-500" />
+                Hide correct answers from students
+              </Label>
+            </div>
+            
+            <p className="text-xs text-gray-500 ml-6">
+              When enabled, students won't see which answers were correct when they submit their responses.
+              This is useful for assessments where you don't want students to see the correct answer.
+            </p>
           </div>
           
           <div>
