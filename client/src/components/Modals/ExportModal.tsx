@@ -135,6 +135,39 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
                           <CodeBlock code={question.codeSuffix || ''} language={question.language || 'javascript'} />
                         </div>
                       </div>
+                      
+                      {/* Controls */}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <Button 
+                          className="text-sm bg-green-600 hover:bg-green-700 px-2 py-1 h-auto"
+                          size="sm"
+                        >
+                          Show Solution
+                        </Button>
+                        
+                        {question.hintComment && (
+                          <Button 
+                            variant="outline" 
+                            className="text-sm border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 px-2 py-1 h-auto"
+                            size="sm"
+                          >
+                            Show Hint
+                          </Button>
+                        )}
+                        
+                        <Button 
+                          className="text-sm bg-indigo-600 hover:bg-indigo-700 flex items-center px-2 py-1 h-auto"
+                          size="sm"
+                        >
+                          Run Code
+                        </Button>
+                      </div>
+                      
+                      {/* Output preview */}
+                      <div className="mt-2 p-2 bg-gray-800 text-white rounded-md">
+                        <div className="text-xs text-gray-400 mb-1">Output:</div>
+                        <div className="font-mono text-xs">Code execution is available in the exported HTML</div>
+                      </div>
                     </div>
                   )}
                 </div>
