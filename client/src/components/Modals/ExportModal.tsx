@@ -138,12 +138,14 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
                       
                       {/* Controls */}
                       <div className="flex flex-wrap gap-2 mt-2">
-                        <Button 
-                          className="text-sm bg-green-600 hover:bg-green-700 px-2 py-1 h-auto"
-                          size="sm"
-                        >
-                          Show Solution
-                        </Button>
+                        {!question.hideSolution && (
+                          <Button 
+                            className="text-sm bg-green-600 hover:bg-green-700 px-2 py-1 h-auto"
+                            size="sm"
+                          >
+                            Show Solution
+                          </Button>
+                        )}
                         
                         {question.hintComment && (
                           <Button 

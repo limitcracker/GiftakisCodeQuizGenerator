@@ -192,6 +192,32 @@ export default function FillWholeQuestion({
           </div>
         </div>
 
+        {/* Question Settings */}
+        <div className="space-y-4 border border-slate-200 p-4 rounded-lg bg-slate-50">
+          <h3 className="text-sm font-medium">Question Settings</h3>
+          
+          <div className="flex items-center space-x-2">
+            <input 
+              type="checkbox" 
+              id="hideSolution" 
+              checked={question.hideSolution || false}
+              onChange={(e) => onUpdate({
+                ...question,
+                hideSolution: e.target.checked
+              })}
+              className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+            />
+            <Label htmlFor="hideSolution" className="text-sm cursor-pointer">
+              Hide "Show Solution" button for students
+            </Label>
+          </div>
+          
+          <p className="text-xs text-slate-500 ml-6">
+            When enabled, students won't be able to view the solution in the quiz.
+            This is useful for assessments where you don't want students to see the correct answer.
+          </p>
+        </div>
+        
         {/* Hint */}
         <div className="space-y-2 bg-amber-50 p-4 rounded-lg border border-amber-200">
           <Label htmlFor="hintComment" className="flex items-center text-amber-800">

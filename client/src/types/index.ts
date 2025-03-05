@@ -24,6 +24,9 @@ export interface Question {
   explanation?: string;
   order: number;
   
+  // Question control settings
+  hideSolution?: boolean;  // If true, students cannot view the solution
+  
   // Type-specific properties
   codeBlocks?: CodeOrderBlock[];  // For code-order questions
   options?: MultipleChoiceOption[];  // For multiple/single choice questions

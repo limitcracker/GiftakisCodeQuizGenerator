@@ -124,8 +124,10 @@ export function generateHtml(quiz: Quiz): string {
       </div>
       
       <div class="cq-code-controls">
+        ${!question.hideSolution ? `
         <button class="cq-button cq-show-solution">Show Solution</button>
         <button class="cq-button cq-hide-solution" style="display: none;">Hide Solution</button>
+        ` : ''}
         <button class="cq-button cq-run-code" style="background-color: #4f46e5;">Run Code</button>
         ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
       </div>

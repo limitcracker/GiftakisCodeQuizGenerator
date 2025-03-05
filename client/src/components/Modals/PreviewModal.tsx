@@ -285,12 +285,14 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                       
                       {/* Controls */}
                       <div className="flex flex-wrap gap-2 mb-4">
-                        <Button 
-                          className={`text-sm ${showSolution[question.id] ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'}`}
-                          onClick={() => toggleSolution(question.id)}
-                        >
-                          {showSolution[question.id] ? 'Hide Solution' : 'Show Solution'}
-                        </Button>
+                        {!question.hideSolution && (
+                          <Button 
+                            className={`text-sm ${showSolution[question.id] ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'}`}
+                            onClick={() => toggleSolution(question.id)}
+                          >
+                            {showSolution[question.id] ? 'Hide Solution' : 'Show Solution'}
+                          </Button>
+                        )}
                         
                         {question.hintComment && (
                           <Button 
