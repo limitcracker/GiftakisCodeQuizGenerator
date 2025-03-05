@@ -33,8 +33,9 @@ export function generateHtml(quiz: Quiz): string {
       switch (question.type) {
         case 'code-order':
           questionHtml = `
-    <div class="cq-question" data-type="order">
+    <div class="cq-question" data-type="order" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
+      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display"></span></div>` : ''}
       <div class="cq-order-container">
         <!-- Blocks will be shuffled when quiz loads -->
         ${(question.codeBlocks || []).map(block => 
@@ -63,8 +64,9 @@ export function generateHtml(quiz: Quiz): string {
         case 'single-choice':
           const inputType = question.type === 'multiple-choice' ? 'checkbox' : 'radio';
           questionHtml = `
-    <div class="cq-question" data-type="${question.type}">
+    <div class="cq-question" data-type="${question.type}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
+      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display"></span></div>` : ''}
       ${question.codeExample ? `
       <div class="cq-code-example">
         <pre><code class="language-javascript">${escape(question.codeExample)}</code></pre>
@@ -98,8 +100,9 @@ export function generateHtml(quiz: Quiz): string {
           
         case 'fill-gaps':
           questionHtml = `
-    <div class="cq-question" data-type="fill-gaps">
+    <div class="cq-question" data-type="fill-gaps" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
+      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display"></span></div>` : ''}
       <div class="cq-code-with-gaps">
         <pre><code class="language-javascript">${
           escape(question.codeWithGaps || '')
@@ -135,8 +138,9 @@ export function generateHtml(quiz: Quiz): string {
           
         case 'find-errors':
           questionHtml = `
-    <div class="cq-question" data-type="find-errors">
+    <div class="cq-question" data-type="find-errors" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
+      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display"></span></div>` : ''}
       <div class="cq-code-with-errors">
         <pre><code class="language-python">${escape(question.code || '')}</code></pre>
         <div class="cq-line-numbers">
@@ -178,8 +182,9 @@ export function generateHtml(quiz: Quiz): string {
         case 'fill-whole':
           const language = question.language || 'javascript';
           questionHtml = `
-    <div class="cq-question" data-type="fill-whole" data-language="${escape(language)}">
+    <div class="cq-question" data-type="fill-whole" data-language="${escape(language)}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
       <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
+      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display"></span></div>` : ''}
       <div class="cq-code-wrapper">
         <div class="cq-code-prefix">
           <pre><code class="language-${escape(language)}">${escape(question.codePrefix || '')}</code></pre>
@@ -258,6 +263,8 @@ ${generateQuestionHtml()}
     .cq-timer { background: #f0f9ff; border: 1px solid #bae6fd; color: #0c4a6e; padding: 0.5rem 1rem; border-radius: 0.5rem; margin-bottom: 2rem; display: flex; align-items: center; }
     .cq-timer-icon { margin-right: 0.5rem; font-size: 1.25rem; }
     .cq-timer-display { font-family: monospace; font-size: 1.1rem; font-weight: 500; }
+    .cq-question-timer { background: #f8f8f8; border: 1px solid #e5e7eb; color: #374151; padding: 0.4rem 0.8rem; border-radius: 0.4rem; margin-bottom: 1rem; display: inline-flex; align-items: center; }
+    .cq-question-timer-display { font-family: monospace; font-size: 0.95rem; font-weight: 500; }
     .cq-question { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 1.5rem; margin-bottom: 1.5rem; }
     .cq-question-title { font-size: 1.2rem; margin-bottom: 1rem; }
     .cq-code-example, .cq-code-with-gaps, .cq-code-with-errors { background: #1e293b; border-radius: 6px; margin: 1rem 0; overflow: auto; position: relative; }
@@ -317,15 +324,16 @@ ${generateQuestionHtml()}
       const timeLimit = quizElement.getAttribute('data-time-limit');
       const timerDisplay = document.querySelector('.cq-timer-display');
       
+      // Format time as MM:SS
+      function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return minutes.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+      }
+      
+      // Initialize quiz-level timer
       if (timeLimit && timerDisplay) {
         let remainingTime = parseInt(timeLimit);
-        
-        // Format time as MM:SS
-        const formatTime = (seconds) => {
-          const minutes = Math.floor(seconds / 60);
-          const secs = seconds % 60;
-          return minutes.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
-        };
         
         // Initial display
         timerDisplay.textContent = formatTime(remainingTime);
@@ -348,6 +356,47 @@ ${generateQuestionHtml()}
           }
         }, 1000);
       }
+      
+      // Initialize per-question timers
+      document.querySelectorAll('.cq-question[data-time-limit]').forEach(question => {
+        const timeLimit = parseInt(question.getAttribute('data-time-limit') || '0');
+        const timerDisplay = question.querySelector('.cq-question-timer-display');
+        
+        if (timeLimit && timerDisplay) {
+          let remainingTime = timeLimit;
+          
+          // Initial display
+          timerDisplay.textContent = formatTime(remainingTime);
+          
+          // Start timer
+          const timerInterval = setInterval(() => {
+            remainingTime--;
+            timerDisplay.textContent = formatTime(remainingTime);
+            
+            // Change color when less than 30 seconds remains
+            if (remainingTime <= 30) {
+              timerDisplay.style.color = '#ef4444';
+            }
+            
+            // Time's up
+            if (remainingTime <= 0) {
+              clearInterval(timerInterval);
+              // Make the timer display more visible
+              const timerElement = question.querySelector('.cq-question-timer');
+              if (timerElement) {
+                timerElement.style.backgroundColor = '#fee2e2';
+                timerElement.style.borderColor = '#f87171';
+              }
+              
+              // Auto-reveal solution if available based on question type
+              const solutionButton = question.querySelector('.cq-show-solution, .cq-show-order-solution, .cq-show-choice-solution, .cq-show-gaps-solution, .cq-show-errors-solution');
+              if (solutionButton) {
+                solutionButton.click();
+              }
+            }
+          }, 1000);
+        }
+      });
       
       // Shuffle code blocks for ordering questions
       document.querySelectorAll('.cq-question[data-type="order"]').forEach(question => {
