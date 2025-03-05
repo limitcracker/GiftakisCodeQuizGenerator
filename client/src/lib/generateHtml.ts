@@ -402,7 +402,14 @@ ${escape(question.code || '')}
   <div class="cq-quiz" ${quiz.timeLimit ? `data-time-limit="${quiz.timeLimit}"` : ''}>
     <h1 class="cq-title">${escape(title)}</h1>
     <p class="cq-description">${escape(description)}</p>
-    ${quiz.timeLimit ? `<div class="cq-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-timer-display">00:00</span></div>` : ''}
+    ${quiz.timeLimit ? `
+    <div class="cq-timer-container">
+      <div class="cq-timer">
+        <span class="cq-timer-icon">⏱️</span> 
+        <span class="cq-timer-display">00:00</span>
+      </div>
+      <button class="cq-button cq-start-timer">Start Timer</button>
+    </div>` : ''}
     
 ${generateQuestionHtml()}
     
@@ -416,7 +423,11 @@ ${generateQuestionHtml()}
     .cq-container { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 0 auto; }
     .cq-title { font-size: 1.8rem; margin-bottom: 0.5rem; }
     .cq-description { color: #666; margin-bottom: 1rem; }
-    .cq-timer { background: #f0f9ff; border: 1px solid #bae6fd; color: #0c4a6e; padding: 0.5rem 1rem; border-radius: 0.5rem; margin-bottom: 2rem; display: flex; align-items: center; }
+    .cq-timer-container { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+    .cq-timer { background: #f0f9ff; border: 1px solid #bae6fd; color: #0c4a6e; padding: 0.5rem 1rem; border-radius: 0.5rem; display: flex; align-items: center; flex-grow: 1; }
+    .cq-start-timer { background: #0ea5e9; }
+    .cq-start-timer:hover { background: #0284c7; }
+    .cq-start-timer.disabled { background: #94a3b8; cursor: not-allowed; }
     .cq-timer-icon { margin-right: 0.5rem; font-size: 1.25rem; }
     .cq-timer-display { font-family: monospace; font-size: 1.1rem; font-weight: 500; }
     .cq-question-timer { background: #f8f8f8; border: 1px solid #e5e7eb; color: #374151; padding: 0.4rem 0.8rem; border-radius: 0.4rem; margin-bottom: 1rem; display: inline-flex; align-items: center; }
@@ -600,6 +611,61 @@ ${generateQuestionHtml()}
     document.addEventListener('DOMContentLoaded', function() {
       // Initialize syntax highlighting, etc.
       if (typeof hljs !== 'undefined') hljs.highlightAll();
+      
+      // Setup quiz timer functionality
+      const quizElement = document.querySelector('.cq-quiz');
+      const quizTimerButton = document.querySelector('.cq-start-timer');
+      const quizTimerDisplay = document.querySelector('.cq-timer-display');
+      
+      if (quizElement && quizTimerButton && quizTimerDisplay) {
+        let timerInterval = null;
+        let timerRunning = false;
+        let timeLimit = parseInt(quizElement.getAttribute('data-time-limit') || '0');
+        let timeRemaining = timeLimit;
+        
+        // Format time as MM:SS
+        const formatTime = function(seconds) {
+          const mins = Math.floor(seconds / 60);
+          const secs = seconds % 60;
+          return (mins < 10 ? '0' + mins : mins) + ':' + (secs < 10 ? '0' + secs : secs);
+        };
+        
+        // Initialize timer display
+        quizTimerDisplay.textContent = formatTime(timeRemaining);
+        
+        // Setup start timer button
+        quizTimerButton.addEventListener('click', function() {
+          if (!timerRunning) {
+            // Start the timer
+            timerRunning = true;
+            quizTimerButton.textContent = "Timer Started";
+            quizTimerButton.classList.add('disabled');
+            
+            // Update timer display every second
+            timerInterval = setInterval(function() {
+              timeRemaining--;
+              quizTimerDisplay.textContent = formatTime(timeRemaining);
+              
+              // Change color when time is running out
+              if (timeRemaining <= 60) {
+                quizTimerDisplay.style.color = '#ef4444';  // Red color
+              }
+              
+              // Time's up
+              if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                quizTimerDisplay.textContent = "Time's Up!";
+                
+                // Optionally auto-submit the quiz
+                var checkBtn = document.querySelector('.cq-check');
+                if (checkBtn) {
+                  checkBtn.click();
+                }
+              }
+            }, 1000);
+          }
+        });
+      }
       
       // Setup character counters for text questions
       const textInputs = document.querySelectorAll('.cq-text-answer-input');
@@ -790,17 +856,19 @@ ${generateQuestionHtml()}
       // Function to shuffle code blocks
       function shuffleBlocks(container, blocks) {
         // Clone and shuffle array
-        const shuffled = [...blocks].sort(() => Math.random() - 0.5);
+        var shuffled = [].slice.call(blocks).sort(function() {
+          return Math.random() - 0.5;
+        });
         
         // Reapply to container
-        shuffled.forEach(block => {
+        shuffled.forEach(function(block) {
           container.appendChild(block);
         });
       }
       
       // Function to set up drag and drop for code blocks
       function setupDragAndDrop(container, blocks) {
-        blocks.forEach(block => {
+        blocks.forEach(function(block) {
           // Make each block draggable
           block.setAttribute('draggable', 'true');
           
@@ -823,11 +891,11 @@ ${generateQuestionHtml()}
             if (this.classList.contains('selected')) return;
             
             // Select this block
-            const selected = container.querySelector('.cq-code-block.selected');
+            var selected = container.querySelector('.cq-code-block.selected');
             if (selected) {
               // If another block is selected, swap them
-              const selectedIndex = Array.from(container.children).indexOf(selected);
-              const thisIndex = Array.from(container.children).indexOf(this);
+              var selectedIndex = Array.prototype.indexOf.call(container.children, selected);
+              var thisIndex = Array.prototype.indexOf.call(container.children, this);
               
               if (selectedIndex < thisIndex) {
                 // Insert after this block
@@ -878,16 +946,16 @@ ${generateQuestionHtml()}
       // Helper function to find the closest element to insert after
       function getDragAfterElement(container, y) {
         // Get all non-dragging elements
-        const elements = [...container.querySelectorAll('.cq-code-block:not(.dragging)')];
+        var elements = [].slice.call(container.querySelectorAll('.cq-code-block:not(.dragging)'));
         
         // Find the element whose "middle" the y-coordinate is closest to
-        return elements.reduce((closest, element) => {
-          const box = element.getBoundingClientRect();
-          const offset = y - (box.top + box.height / 2);
+        return elements.reduce(function(closest, element) {
+          var box = element.getBoundingClientRect();
+          var offset = y - (box.top + box.height / 2);
           
           // If offset is negative, we're above the middle, but we want the closest one
           if (offset < 0 && offset > closest.offset) {
-            return { offset, element };
+            return { offset: offset, element: element };
           } else {
             return closest;
           }
