@@ -64,6 +64,10 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         return 'After watching the video, which approach is correct?';
       case 'fill-whole':
         return 'Implement the missing code section to complete this function:';
+      case 'text-short':
+        return 'What programming language is primarily used for front-end web development?';
+      case 'text-long':
+        return 'Describe JavaScript and provide an example of its use in web development:';
       default:
         return 'New Question';
     }
@@ -138,6 +142,22 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         solutionCode: '  if (n <= 1) return 1;\n  return n * factorial(n - 1);',
         language: 'javascript',
         hintComment: 'Remember that factorial(0) = 1 and factorial(n) = n * factorial(n-1) for n > 0'
+      }),
+      ...(selectedQuestionType === 'text-short' && {
+        textAnswer: 'JavaScript',
+        isMarkdown: false,
+        supportCodeBlocks: false,
+        minLength: 2,
+        maxLength: 50,
+        hintComment: 'Think about the programming language using for web browsers'
+      }),
+      ...(selectedQuestionType === 'text-long' && {
+        textAnswer: 'JavaScript is a high-level, interpreted programming language that conforms to the ECMAScript specification. It is multi-paradigm, supporting event-driven, functional, and imperative programming styles.\n\n```javascript\n// Example code\nconst greeting = (name) => {\n  return `Hello, ${name}!`;\n};\n\nconsole.log(greeting("World"));\n```',
+        isMarkdown: true,
+        supportCodeBlocks: true,
+        minLength: 50,
+        maxLength: 1000,
+        hintComment: 'Include a brief description and a code example demonstrating a feature of the language'
       })
     };
     
