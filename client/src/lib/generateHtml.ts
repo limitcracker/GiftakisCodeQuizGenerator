@@ -631,31 +631,6 @@ ${generateQuestionHtml()}
         
         // Set up drag & drop for code blocks
         setupDragAndDrop(container, codeBlocks);
-        
-        // Show solution button
-        const showSolutionBtn = container.parentElement.querySelector('.cq-show-order-solution');
-        if (showSolutionBtn) {
-          showSolutionBtn.addEventListener('click', function() {
-            const containerElement = this.closest('.cq-question').querySelector('.cq-order-container');
-            const blocks = [...containerElement.querySelectorAll('.cq-code-block')];
-            
-            // Sort blocks by correctPosition attribute
-            blocks.sort((a, b) => {
-              return parseInt(a.dataset.position) - parseInt(b.dataset.position);
-            });
-            
-            // Reorder blocks in the container
-            blocks.forEach(block => {
-              containerElement.appendChild(block);
-            });
-            
-            // Change button text and disable it
-            this.textContent = 'Solution Shown';
-            this.disabled = true;
-            this.style.opacity = '0.7';
-            this.style.cursor = 'default';
-          });
-        }
       });
       
       // Function to shuffle code blocks
@@ -795,9 +770,106 @@ ${generateQuestionHtml()}
         });
       });
       
+      // Show/Hide solution for multiple/single choice questions
+      const choiceSolutionBtns = document.querySelectorAll('.cq-show-choice-solution');
+      choiceSolutionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const question = this.closest('.cq-question');
+          const options = question.querySelectorAll('.cq-option');
+          
+          // First click: Show correct answers
+          if (this.textContent === 'Show Solution') {
+            options.forEach(option => {
+              const input = option.querySelector('input');
+              const isCorrect = input.dataset.correct === 'true';
+              
+              if (isCorrect) {
+                input.checked = true;
+                option.classList.add('cq-correct-option');
+              } else {
+                input.checked = false;
+              }
+            });
+            
+            this.textContent = 'Hide Solution';
+          } 
+          // Second click: Reset to original state
+          else {
+            options.forEach(option => {
+              const input = option.querySelector('input');
+              input.checked = false;
+              option.classList.remove('cq-correct-option');
+            });
+            
+            this.textContent = 'Show Solution';
+          }
+        });
+      });
+      
+      // Show/Hide solution for fill-gaps questions
+      const gapsSolutionBtns = document.querySelectorAll('.cq-show-gaps-solution');
+      gapsSolutionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const question = this.closest('.cq-question');
+          const gaps = question.querySelectorAll('.cq-gap');
+          
+          // Toggle solution visibility
+          if (this.textContent === 'Show Solution') {
+            gaps.forEach(gap => {
+              gap.textContent = gap.dataset.answer;
+              gap.classList.add('cq-gap-solved');
+            });
+            this.textContent = 'Hide Solution';
+          } else {
+            gaps.forEach(gap => {
+              gap.textContent = '[Gap ' + (Array.from(gaps).indexOf(gap) + 1) + ']';
+              gap.classList.remove('cq-gap-solved');
+            });
+            this.textContent = 'Show Solution';
+          }
+        });
+      });
+      
+      // Show/Hide solution for find-errors questions
+      const errorsSolutionBtns = document.querySelectorAll('.cq-show-errors-solution');
+      errorsSolutionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const question = this.closest('.cq-question');
+          const errorOptions = question.querySelectorAll('.cq-error-option input');
+          const errorLines = question.querySelectorAll('.cq-line-number.cq-error-line');
+          
+          // Toggle solution visibility
+          if (this.textContent === 'Show Solution') {
+            // Check all correct errors
+            errorOptions.forEach(option => {
+              option.checked = true;
+            });
+            
+            // Highlight error lines
+            errorLines.forEach(line => {
+              line.classList.add('cq-error-line-highlighted');
+            });
+            
+            this.textContent = 'Hide Solution';
+          } else {
+            // Uncheck all errors
+            errorOptions.forEach(option => {
+              option.checked = false;
+            });
+            
+            // Remove highlighting
+            errorLines.forEach(line => {
+              line.classList.remove('cq-error-line-highlighted');
+            });
+            
+            this.textContent = 'Show Solution';
+          }
+        });
+      });
+      
       // Show/Hide solution for text questions
-      const solutionBtns = document.querySelectorAll('.cq-show-text-solution');
-      solutionBtns.forEach(btn => {
+      const textSolutionBtns = document.querySelectorAll('.cq-show-text-solution');
+      textSolutionBtns.forEach(btn => {
         btn.addEventListener('click', function() {
           const question = this.closest('.cq-question');
           const solution = question.querySelector('.cq-text-solution');
