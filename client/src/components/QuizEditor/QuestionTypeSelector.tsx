@@ -7,7 +7,8 @@ import {
   Circle, 
   Bug, 
   Image, 
-  Video 
+  Video,
+  FileCode
 } from 'lucide-react';
 
 const questionTypes = [
@@ -25,6 +26,11 @@ const questionTypes = [
     type: 'fill-gaps' as QuestionType, 
     icon: Code, 
     label: 'Fill in the Gaps' 
+  },
+  { 
+    type: 'fill-whole' as QuestionType, 
+    icon: FileCode, 
+    label: 'Complete Code Block' 
   },
   { 
     type: 'multiple-choice' as QuestionType, 
