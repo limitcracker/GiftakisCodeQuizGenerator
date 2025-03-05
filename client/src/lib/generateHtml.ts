@@ -616,8 +616,106 @@ ${generateQuestionHtml()}
       const checkBtn = document.querySelector('.cq-check');
       if (checkBtn) {
         checkBtn.addEventListener('click', function() {
-          // Check all answers
-          console.log('Check answers clicked');
+          // Get all questions
+          const questions = document.querySelectorAll('.cq-question');
+          let correctCount = 0;
+          let totalCount = 0;
+          
+          questions.forEach(question => {
+            const questionType = question.getAttribute('data-type');
+            let isCorrect = false;
+            
+            switch(questionType) {
+              case 'multiple-choice':
+              case 'single-choice':
+                // For choice questions, check if correct options are selected
+                const options = question.querySelectorAll('.cq-option');
+                let allCorrect = true;
+                
+                options.forEach(option => {
+                  const input = option.querySelector('input');
+                  const shouldBeChecked = input.dataset.correct === 'true';
+                  
+                  if (input.checked !== shouldBeChecked) {
+                    allCorrect = false;
+                  }
+                });
+                
+                isCorrect = allCorrect;
+                break;
+                
+              case 'code-order':
+                // For code order, check if blocks are in correct order
+                const blocks = [...question.querySelectorAll('.cq-code-block')];
+                let orderedCorrectly = true;
+                
+                for (let i = 0; i < blocks.length; i++) {
+                  const correctPos = parseInt(blocks[i].dataset.position);
+                  if (correctPos !== i + 1) {
+                    orderedCorrectly = false;
+                    break;
+                  }
+                }
+                
+                isCorrect = orderedCorrectly;
+                break;
+                
+              case 'fill-gaps':
+                // For fill gaps, check if all gaps have correct answers
+                const gaps = question.querySelectorAll('.cq-gap');
+                let allGapsCorrect = true;
+                
+                gaps.forEach(gap => {
+                  if (gap.textContent !== gap.dataset.answer) {
+                    allGapsCorrect = false;
+                  }
+                });
+                
+                isCorrect = allGapsCorrect;
+                break;
+                
+              case 'find-errors':
+                // For error finding, check if correct errors are selected
+                const errorOptions = question.querySelectorAll('.cq-error-option input');
+                let allErrorsCorrect = true;
+                
+                errorOptions.forEach(option => {
+                  // All error options should be checked in a correct solution
+                  if (!option.checked) {
+                    allErrorsCorrect = false;
+                  }
+                });
+                
+                isCorrect = allErrorsCorrect;
+                break;
+                
+              // Add other question types as needed
+            }
+            
+            // Apply visual feedback
+            if (isCorrect) {
+              question.classList.add('cq-correct');
+              question.classList.remove('cq-incorrect');
+              correctCount++;
+            } else {
+              question.classList.add('cq-incorrect');
+              question.classList.remove('cq-correct');
+            }
+            
+            totalCount++;
+          });
+          
+          // Show result message
+          const resultElement = document.querySelector('.cq-result-message') || 
+            (() => {
+              const el = document.createElement('div');
+              el.className = 'cq-result-message';
+              document.querySelector('.cq-controls').insertBefore(el, checkBtn.nextSibling);
+              return el;
+            })();
+          
+          resultElement.textContent = 'Score: ' + correctCount + '/' + totalCount + ' correct';
+          resultElement.style.display = 'block';
         });
       }
       
