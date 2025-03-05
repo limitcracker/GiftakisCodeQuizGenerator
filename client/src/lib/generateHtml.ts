@@ -223,6 +223,83 @@ export function generateHtml(quiz: Quiz): string {
       ${question.explanation ? `<div class="cq-explanation">${escape(question.explanation)}</div>` : ''}
     </div>`;
           break;
+
+        case 'text-short':
+        case 'text-long':
+          const isLong = question.type === 'text-long';
+          const minLength = question.minLength || 0;
+          const maxLength = question.maxLength || 0;
+          const supportCode = question.supportCodeBlocks || false;
+          
+          questionHtml = `
+    <div class="cq-question" data-type="${question.type}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
+      <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
+      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
+      
+      <div class="cq-text-answer-container">
+        ${isLong ? 
+          `<textarea 
+            class="cq-text-answer-input" 
+            rows="8" 
+            placeholder="Type your answer here..."
+            ${minLength ? `minlength="${minLength}"` : ''}
+            ${maxLength ? `maxlength="${maxLength}"` : ''}
+          ></textarea>` : 
+          `<input 
+            type="text" 
+            class="cq-text-answer-input" 
+            placeholder="Type your answer here..."
+            ${minLength ? `minlength="${minLength}"` : ''}
+            ${maxLength ? `maxlength="${maxLength}"` : ''}
+          />`
+        }
+        
+        ${minLength || maxLength ? 
+          `<div class="cq-text-length-counter">
+            <span class="cq-current-length">0</span>
+            ${minLength && maxLength ? 
+              `/ ${minLength}-${maxLength} characters` : 
+              minLength ? 
+                `/ min ${minLength} characters` : 
+                `/ max ${maxLength} characters`
+            }
+          </div>` : ''
+        }
+      </div>
+      
+      ${supportCode ? 
+        `<div class="cq-text-format-controls">
+          <button class="cq-button cq-format-code">Insert Code Block</button>
+        </div>` : ''
+      }
+      
+      <div class="cq-code-controls">
+        ${!question.hideSolution ? `
+        <button class="cq-button cq-show-text-solution">Show Sample Answer</button>
+        ` : ''}
+        ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
+      </div>
+      
+      ${!question.hideSolution ? `
+      <div class="cq-text-solution" style="display: none;">
+        <h3>Sample Answer:</h3>
+        <div class="cq-text-solution-content">
+          ${question.isMarkdown ? 
+            `<div class="cq-markdown-content">${escape(question.textAnswer || '')}</div>` :
+            `<p>${escape(question.textAnswer || '')}</p>`
+          }
+        </div>
+      </div>` : ''}
+      
+      ${question.hintComment ? `
+      <div class="cq-hint" style="display: none;">
+        <div class="cq-hint-icon">💡</div>
+        <div class="cq-hint-text">${escape(question.hintComment)}</div>
+      </div>` : ''}
+      
+      ${question.explanation ? `<div class="cq-explanation">${escape(question.explanation)}</div>` : ''}
+    </div>`;
+          break;
           
         default:
           questionHtml = `
@@ -312,6 +389,22 @@ ${generateQuestionHtml()}
     .cq-hint { display: flex; align-items: flex-start; background: #fef9c3; border: 1px solid #fde047; padding: 1rem; border-radius: 6px; margin: 1rem 0; }
     .cq-hint-icon { font-size: 1.25rem; margin-right: 0.75rem; }
     .cq-hint-text { color: #854d0e; font-size: 0.9rem; }
+    
+    /* Text Question type styles */
+    .cq-text-answer-container { margin: 1rem 0; }
+    .cq-text-answer-input { width: 100%; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0.75rem; font-family: -apple-system, system-ui, sans-serif; font-size: 14px; background: #f8fafc; }
+    .cq-text-answer-input:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
+    textarea.cq-text-answer-input { min-height: 150px; resize: vertical; }
+    .cq-text-length-counter { margin-top: 0.5rem; color: #6b7280; font-size: 0.875rem; text-align: right; }
+    .cq-text-format-controls { margin: 0.5rem 0; }
+    .cq-format-code { background: #3b82f6; }
+    .cq-format-code:hover { background: #2563eb; }
+    .cq-text-solution { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 1rem; margin: 1rem 0; }
+    .cq-text-solution h3 { font-size: 1rem; color: #166534; margin-top: 0; margin-bottom: 0.5rem; }
+    .cq-text-solution-content { color: #166534; font-size: 0.9rem; }
+    .cq-markdown-content { white-space: pre-wrap; font-family: -apple-system, system-ui, sans-serif; }
+    .cq-show-text-solution { background: #16a34a; }
+    .cq-show-text-solution:hover { background: #15803d; }
   </style>
   
   <script>
@@ -558,8 +651,21 @@ ${generateQuestionHtml()}
           overlay.style.display = 'none';
         });
         
+        // Reset text questions
+        document.querySelectorAll('.cq-text-answer-input').forEach(input => {
+          input.value = '';
+        });
+        
+        document.querySelectorAll('.cq-text-solution').forEach(solution => {
+          solution.style.display = 'none';
+        });
+        
+        document.querySelectorAll('.cq-current-length').forEach(counter => {
+          counter.textContent = '0';
+        });
+        
         // Reset solution buttons
-        document.querySelectorAll('.cq-show-solution, .cq-show-order-solution, .cq-show-choice-solution, .cq-show-gaps-solution, .cq-show-errors-solution').forEach(btn => {
+        document.querySelectorAll('.cq-show-solution, .cq-show-order-solution, .cq-show-choice-solution, .cq-show-gaps-solution, .cq-show-errors-solution, .cq-show-text-solution').forEach(btn => {
           btn.style.display = 'inline-block';
         });
         
