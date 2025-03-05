@@ -24,33 +24,56 @@ export function generateHtml(quiz: {
       
       switch (question.type) {
         case 'code-order':
-          // Code ordering question
-          questionHtml = `
-    <div class="cq-question" data-type="${question.type}" ${question.timeLimit ? `data-time-limit="${question.timeLimit}"` : ''}>
-      <h2 class="cq-question-title">Question ${index + 1}: ${escape(question.title)}</h2>
-      ${question.timeLimit ? `<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>` : ''}
-      
-      <div class="cq-order-container">
-        ${question.codeBlocks?.map(block => {
-          return `<div class="cq-code-block" data-id="${block.id}" data-position="${block.correctPosition}">
-            <pre><code class="language-${block.language}">${escape(block.content)}</code></pre>
-          </div>`;
-        }).join('\n') || ''}
-      </div>
-      
-      <div class="cq-code-controls">
-        ${!question.hideSolution ? `<button class="cq-button cq-show-order-solution">Show Solution</button>` : ''}
-        ${question.hintComment ? `<button class="cq-button cq-show-hint">Show Hint</button>` : ''}
-      </div>
-      
-      ${question.hintComment ? `
-      <div class="cq-hint" style="display: none;">
-        <div class="cq-hint-icon">💡</div>
-        <div class="cq-hint-text">${escape(question.hintComment)}</div>
-      </div>` : ''}
-      
-      ${question.explanation ? `<div class="cq-explanation">${escape(question.explanation)}</div>` : ''}
-    </div>`;
+          // Code ordering question - no template literals
+          questionHtml = '<div class="cq-question" data-type="code-order"';
+          
+          if (question.timeLimit) {
+            questionHtml += ' data-time-limit="' + question.timeLimit + '"';
+          }
+          
+          questionHtml += '>\n';
+          questionHtml += '<h2 class="cq-question-title">Question ' + (index + 1) + ': ' + escape(question.title) + '</h2>\n';
+          
+          if (question.timeLimit) {
+            questionHtml += '<div class="cq-question-timer"><span class="cq-timer-icon">⏱️</span> <span class="cq-question-timer-display">00:00</span></div>\n';
+          }
+          
+          questionHtml += '<div class="cq-order-container">\n';
+          
+          if (question.codeBlocks && question.codeBlocks.length > 0) {
+            for (let i = 0; i < question.codeBlocks.length; i++) {
+              const block = question.codeBlocks[i];
+              questionHtml += '<div class="cq-code-block" data-id="' + block.id + '" data-position="' + block.correctPosition + '">\n';
+              questionHtml += '<pre><code class="language-' + block.language + '">' + escape(block.content) + '</code></pre>\n';
+              questionHtml += '</div>\n';
+            }
+          }
+          
+          questionHtml += '</div>\n';
+          questionHtml += '<div class="cq-code-controls">\n';
+          
+          if (!question.hideSolution) {
+            questionHtml += '<button class="cq-button cq-show-order-solution">Show Solution</button>\n';
+          }
+          
+          if (question.hintComment) {
+            questionHtml += '<button class="cq-button cq-show-hint">Show Hint</button>\n';
+          }
+          
+          questionHtml += '</div>\n';
+          
+          if (question.hintComment) {
+            questionHtml += '<div class="cq-hint" style="display: none;">\n';
+            questionHtml += '<div class="cq-hint-icon">💡</div>\n';
+            questionHtml += '<div class="cq-hint-text">' + escape(question.hintComment) + '</div>\n';
+            questionHtml += '</div>\n';
+          }
+          
+          if (question.explanation) {
+            questionHtml += '<div class="cq-explanation">' + escape(question.explanation) + '</div>\n';
+          }
+          
+          questionHtml += '</div>';
           break;
           
         case 'multiple-choice':
