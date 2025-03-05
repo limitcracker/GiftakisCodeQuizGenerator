@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Question } from '@/types';
+import { Question, JigsawPiece } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronUp, ChevronDown, Trash2, Plus } from 'lucide-react';
+import { ChevronUp, ChevronDown, Trash2, Plus, Grid2X2, Rows3, ArrowLeftRight, ArrowUpDown } from 'lucide-react';
 import { SyntaxHighlighterWrapper } from '@/lib/syntaxHighlighter';
 
 interface JigsawQuestionProps {
@@ -19,6 +19,33 @@ interface JigsawQuestionProps {
 // Generate a random ID for new jigsaw pieces
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+// Sample 2D jigsaw examples
+const JIGSAW_EXAMPLES = {
+  factorial: {
+    pieces: [
+      { id: generateId(), content: 'function factorial(n) {', correctRow: 0, correctColumn: 0, language: 'javascript' },
+      { id: generateId(), content: '  if (n <= 1) return 1;', correctRow: 1, correctColumn: 0, language: 'javascript' },
+      { id: generateId(), content: '  return n * factorial(n - 1);', correctRow: 2, correctColumn: 0, language: 'javascript' },
+      { id: generateId(), content: '}', correctRow: 3, correctColumn: 0, language: 'javascript' },
+    ],
+    gridSize: { rows: 4, columns: 1 },
+    description: 'Arrange the code blocks to create a valid factorial function'
+  },
+  conditions: {
+    pieces: [
+      { id: generateId(), content: 'if (age < 13) {', correctRow: 0, correctColumn: 0, language: 'javascript' },
+      { id: generateId(), content: '  console.log("Child");', correctRow: 1, correctColumn: 0, language: 'javascript' },
+      { id: generateId(), content: '} else if (age < 20) {', correctRow: 0, correctColumn: 1, language: 'javascript' },
+      { id: generateId(), content: '  console.log("Teenager");', correctRow: 1, correctColumn: 1, language: 'javascript' },
+      { id: generateId(), content: '} else {', correctRow: 0, correctColumn: 2, language: 'javascript' },
+      { id: generateId(), content: '  console.log("Adult");', correctRow: 1, correctColumn: 2, language: 'javascript' },
+      { id: generateId(), content: '}', correctRow: 2, correctColumn: 1, language: 'javascript' },
+    ],
+    gridSize: { rows: 3, columns: 3 },
+    description: 'Arrange the code blocks to form a valid age checking condition structure'
+  }
+};
+
 export default function JigsawQuestion({
   question,
   onUpdate,
@@ -27,19 +54,15 @@ export default function JigsawQuestion({
   onMoveDown
 }: JigsawQuestionProps) {
   const [previewActive, setPreviewActive] = useState(false);
+  const [showGridEditor, setShowGridEditor] = useState(false);
 
   // Initialize jigsawPieces if not present in the question
   if (!question.jigsawPieces) {
     question = {
       ...question,
-      jigsawPieces: [
-        { id: generateId(), content: 'function factorial(n) {', correctRow: 0, correctColumn: 0, language: 'javascript' },
-        { id: generateId(), content: '  if (n <= 1) return 1;', correctRow: 1, correctColumn: 0, language: 'javascript' },
-        { id: generateId(), content: '  return n * factorial(n - 1);', correctRow: 2, correctColumn: 0, language: 'javascript' },
-        { id: generateId(), content: '}', correctRow: 3, correctColumn: 0, language: 'javascript' },
-      ],
-      gridSize: { rows: 4, columns: 1 },
-      jigsawDescription: 'Arrange the code blocks to create a valid factorial function'
+      jigsawPieces: JIGSAW_EXAMPLES.factorial.pieces,
+      gridSize: JIGSAW_EXAMPLES.factorial.gridSize,
+      jigsawDescription: JIGSAW_EXAMPLES.factorial.description
     };
     onUpdate(question);
   }
@@ -111,7 +134,7 @@ export default function JigsawQuestion({
     // Update the correct positions after moving
     const updatedPieces = newPieces.map((piece, idx) => ({
       ...piece,
-      correctRow: idx
+      correctRow: piece.correctRow
     }));
     
     onUpdate({
@@ -129,7 +152,7 @@ export default function JigsawQuestion({
     // Update the correct positions after moving
     const updatedPieces = newPieces.map((piece, idx) => ({
       ...piece,
-      correctRow: idx
+      correctRow: piece.correctRow
     }));
     
     onUpdate({
@@ -145,6 +168,87 @@ export default function JigsawQuestion({
         piece.id === id ? { ...piece, language } : piece
       )
     });
+  };
+
+  const updateGridSize = (property: 'rows' | 'columns', value: number) => {
+    if (!question.gridSize) return;
+    
+    // Ensure value is at least 1
+    value = Math.max(1, value);
+    
+    onUpdate({
+      ...question,
+      gridSize: {
+        ...question.gridSize,
+        [property]: value
+      }
+    });
+  };
+
+  const changeTemplate = (templateName: keyof typeof JIGSAW_EXAMPLES) => {
+    const template = JIGSAW_EXAMPLES[templateName];
+    onUpdate({
+      ...question,
+      jigsawPieces: template.pieces,
+      gridSize: template.gridSize,
+      jigsawDescription: template.description
+    });
+  };
+
+  // Create a visual representation of the grid
+  const visualizeGrid = () => {
+    if (!question.gridSize || !question.jigsawPieces) return null;
+    
+    const { rows, columns } = question.gridSize;
+    
+    // Create a grid matrix filled with null
+    const grid: (JigsawPiece | null)[][] = Array(rows).fill(null).map(() => Array(columns).fill(null));
+    
+    // Place pieces in their correct positions
+    question.jigsawPieces.forEach(piece => {
+      const { correctRow, correctColumn } = piece;
+      // Only place if within grid bounds
+      if (correctRow < rows && correctColumn < columns) {
+        grid[correctRow][correctColumn] = piece;
+      }
+    });
+    
+    return (
+      <div className="mt-6 bg-slate-50 p-4 rounded-lg">
+        <h3 className="text-sm font-medium mb-3">Grid Layout Preview</h3>
+        <div 
+          className="grid gap-2 border bg-white rounded-lg p-2"
+          style={{ 
+            gridTemplateColumns: `repeat(${columns}, 1fr)`,
+            gridTemplateRows: `repeat(${rows}, minmax(50px, auto))`
+          }}
+        >
+          {grid.map((row, rowIndex) =>
+            row.map((piece, colIndex) => (
+              <div 
+                key={`cell-${rowIndex}-${colIndex}`}
+                className={`border ${piece ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-dashed border-gray-300'} rounded p-2 text-xs flex items-center justify-center min-h-[50px] relative`}
+              >
+                {piece ? (
+                  <div className="text-center">
+                    <div className="absolute top-1 right-1 text-xs text-gray-500">
+                      R{rowIndex}:C{colIndex}
+                    </div>
+                    <div className="mt-2 truncate max-w-full">
+                      {piece.content.length > 20 
+                        ? piece.content.substring(0, 20) + '...' 
+                        : piece.content}
+                    </div>
+                  </div>
+                ) : (
+                  <span className="text-gray-400">Empty</span>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -187,7 +291,111 @@ export default function JigsawQuestion({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-medium">Grid Configuration</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowGridEditor(!showGridEditor)}
+              className="flex items-center space-x-1"
+            >
+              <Grid2X2 className="h-3.5 w-3.5 mr-1" />
+              {showGridEditor ? 'Hide' : 'Show'} Grid Editor
+            </Button>
+          </div>
+
+          {showGridEditor && (
+            <>
+              <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                <div className="flex flex-1 items-center space-x-2">
+                  <Label htmlFor="rows" className="whitespace-nowrap">Rows:</Label>
+                  <div className="flex items-center">
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="h-8 w-8 rounded-r-none"
+                      onClick={() => updateGridSize('rows', (question.gridSize?.rows || 1) - 1)}
+                    >
+                      -
+                    </Button>
+                    <Input 
+                      id="rows"
+                      type="number" 
+                      min="1"
+                      value={question.gridSize?.rows || 1} 
+                      onChange={(e) => updateGridSize('rows', parseInt(e.target.value) || 1)}
+                      className="h-8 w-14 rounded-none text-center"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="h-8 w-8 rounded-l-none"
+                      onClick={() => updateGridSize('rows', (question.gridSize?.rows || 1) + 1)}
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex flex-1 items-center space-x-2">
+                  <Label htmlFor="columns" className="whitespace-nowrap">Columns:</Label>
+                  <div className="flex items-center">
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="h-8 w-8 rounded-r-none"
+                      onClick={() => updateGridSize('columns', (question.gridSize?.columns || 1) - 1)}
+                    >
+                      -
+                    </Button>
+                    <Input 
+                      id="columns"
+                      type="number" 
+                      min="1"
+                      value={question.gridSize?.columns || 1} 
+                      onChange={(e) => updateGridSize('columns', parseInt(e.target.value) || 1)}
+                      className="h-8 w-14 rounded-none text-center"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="h-8 w-8 rounded-l-none"
+                      onClick={() => updateGridSize('columns', (question.gridSize?.columns || 1) + 1)}
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                <div className="text-sm text-gray-600 mb-2 w-full">Templates:</div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => changeTemplate('factorial')}
+                  className="flex items-center"
+                >
+                  <Rows3 className="h-3.5 w-3.5 mr-1" /> 
+                  Linear (1D)
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => changeTemplate('conditions')}
+                  className="flex items-center"
+                >
+                  <Grid2X2 className="h-3.5 w-3.5 mr-1" /> 
+                  Grid (2D)
+                </Button>
+              </div>
+
+              {visualizeGrid()}
+            </>
+          )}
+        </div>
+
+        <div className="space-y-2 mt-4">
           <div className="flex justify-between items-center">
             <Label>Jigsaw Pieces (will be shuffled for students)</Label>
             <Button onClick={handleAddPiece} size="sm" variant="outline" className="flex items-center">
@@ -242,12 +450,45 @@ export default function JigsawQuestion({
                   </div>
                 </CardHeader>
                 <CardContent className="p-4">
+                  {/* Code content field */}
                   <Textarea
                     value={piece.content}
                     onChange={(e) => handlePieceContentChange(piece.id, e.target.value)}
                     className="font-mono text-sm h-16 bg-slate-50"
                     placeholder="Enter code snippet for this piece"
                   />
+
+                  {/* Position controls */}
+                  <div className="flex items-center gap-4 mt-3">
+                    <div className="text-xs text-gray-600">Position:</div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor={`row-${piece.id}`} className="text-xs">Row:</Label>
+                      <Input
+                        id={`row-${piece.id}`}
+                        type="number"
+                        min="0"
+                        value={piece.correctRow}
+                        onChange={(e) => handlePiecePositionChange(piece.id, { 
+                          row: parseInt(e.target.value) || 0, 
+                          column: piece.correctColumn 
+                        })}
+                        className="h-7 w-16 text-xs"
+                      />
+                      <Label htmlFor={`col-${piece.id}`} className="text-xs">Column:</Label>
+                      <Input
+                        id={`col-${piece.id}`}
+                        type="number"
+                        min="0"
+                        value={piece.correctColumn}
+                        onChange={(e) => handlePiecePositionChange(piece.id, { 
+                          row: piece.correctRow, 
+                          column: parseInt(e.target.value) || 0 
+                        })}
+                        className="h-7 w-16 text-xs"
+                      />
+                    </div>
+                  </div>
+
                   {previewActive && (
                     <div className="mt-2 border border-slate-200 rounded overflow-hidden">
                       <SyntaxHighlighterWrapper 

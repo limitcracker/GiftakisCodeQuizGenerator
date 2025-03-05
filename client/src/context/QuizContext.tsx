@@ -114,13 +114,17 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       }),
       ...(selectedQuestionType === 'jigsaw' && {
         jigsawPieces: [
-          { id: generateId(), content: 'function factorial(n) {', correctRow: 0, correctColumn: 0, language: 'javascript' },
-          { id: generateId(), content: '  if (n <= 1) return 1;', correctRow: 1, correctColumn: 0, language: 'javascript' },
-          { id: generateId(), content: '  return n * factorial(n - 1);', correctRow: 2, correctColumn: 0, language: 'javascript' },
-          { id: generateId(), content: '}', correctRow: 3, correctColumn: 0, language: 'javascript' },
+          // For if/else structure with two columns - more 2D in nature
+          { id: generateId(), content: 'if (age < 13) {', correctRow: 0, correctColumn: 0, language: 'javascript' },
+          { id: generateId(), content: '  console.log("Child");', correctRow: 1, correctColumn: 0, language: 'javascript' },
+          { id: generateId(), content: '} else if (age < 20) {', correctRow: 0, correctColumn: 1, language: 'javascript' },
+          { id: generateId(), content: '  console.log("Teenager");', correctRow: 1, correctColumn: 1, language: 'javascript' },
+          { id: generateId(), content: '} else {', correctRow: 0, correctColumn: 2, language: 'javascript' },
+          { id: generateId(), content: '  console.log("Adult");', correctRow: 1, correctColumn: 2, language: 'javascript' },
+          { id: generateId(), content: '}', correctRow: 2, correctColumn: 1, language: 'javascript' },
         ],
-        gridSize: { rows: 4, columns: 1 },
-        jigsawDescription: 'Arrange the code blocks to create a valid factorial function'
+        gridSize: { rows: 3, columns: 3 },
+        jigsawDescription: 'Arrange the code blocks to form a valid age checking condition structure'
       })
     };
     
