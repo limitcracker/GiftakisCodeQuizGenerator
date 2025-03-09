@@ -6,7 +6,8 @@ export type QuestionType =
   | 'multiple-choice' 
   | 'single-choice'
   | 'fill-whole'
-  | 'text';
+  | 'text'
+  | 'find-code-errors';
 
 export interface QuizStyle {
   primaryColor?: string; // Main color for buttons, headers, and UI elements
@@ -43,6 +44,11 @@ export interface Question {
   codeBlocks?: CodeOrderBlock[];  // For code-order questions
   options?: MultipleChoiceOption[];  // For multiple/single choice questions
   codeExample?: string;  // Optional code example for multiple/single choice
+  
+  // Find Code Errors specific properties
+  codeWithErrors?: string;  // The code containing errors
+  correctCode?: string;    // The correct version of the code
+  errorDescriptions?: string[];  // List of error descriptions to help students
   
   // Fill in the gaps
   codeWithGaps?: string;

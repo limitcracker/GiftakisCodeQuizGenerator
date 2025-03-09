@@ -7,6 +7,7 @@ import CodeFillQuestion from '@/components/QuestionTypes/CodeFillQuestion';
 import JigsawQuestion from '@/components/QuestionTypes/JigsawQuestion';
 import FillWholeQuestion from '@/components/QuestionTypes/FillWholeQuestion';
 import TextQuestion from '@/components/QuestionTypes/TextQuestion';
+import FindCodeErrorsQuestion from '@/components/QuestionTypes/FindCodeErrorsQuestion';
 
 export default function QuestionList() {
   const { questions, updateQuestion, deleteQuestion, moveQuestionUp, moveQuestionDown } = useQuiz();
@@ -47,6 +48,8 @@ export default function QuestionList() {
         return <FillWholeQuestion key={question.id} {...commonProps} />;
       case 'text':
         return <TextQuestion key={question.id} {...commonProps} />;
+      case 'find-code-errors':
+        return <FindCodeErrorsQuestion key={question.id} {...commonProps} />;
       default:
         console.log('Unknown question type:', question.type);
         return (

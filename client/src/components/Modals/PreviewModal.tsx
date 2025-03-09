@@ -202,6 +202,29 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
       return;
     }
 
+    // For find-code-errors questions
+    if (question.type === 'find-code-errors') {
+      const userCode = codeInputs[question.id]?.trim() || '';
+      const correctCode = question.correctCode?.trim() || '';
+
+      // Remove all whitespace for comparison
+      const normalizedUserCode = userCode.replace(/\s+/g, '');
+      const normalizedCorrectCode = correctCode.replace(/\s+/g, '');
+
+      const isCorrect = normalizedUserCode === normalizedCorrectCode;
+
+      setFeedback(prev => ({
+        ...prev,
+        [question.id]: {
+          isCorrect,
+          message: isCorrect 
+            ? 'Correct! Your code matches the solution.' 
+            : 'Incorrect. Your code does not match the solution. Try again or click "Show Solution" to see the correct code.'
+        }
+      }));
+      return;
+    }
+
     // For single/multiple choice questions
     const selectedAnswer = selectedAnswers[question.id];
     
@@ -529,6 +552,94 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                             </div>
                           ))}
                         </div>
+                      </div>
+                    </>
+                  )}
+                  
+                  {question.type === 'find-code-errors' && (
+                    <>
+                      <div className="space-y-4">
+                        {/* Code with errors display */}
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Code with Errors:</h3>
+                          <div className="bg-[#1E293B] p-4 rounded-md font-mono text-sm text-[#E5E7EB] mb-4">
+                            <CodeBlock 
+                              code={question.codeWithErrors || ''} 
+                              language={question.language || 'javascript'} 
+                            />
+                          </div>
+                        </div>
+
+                        {/* Student's corrected code input */}
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Your Corrected Code:</h3>
+                          <div className="border border-gray-200 rounded-md">
+                            <textarea
+                              className="w-full p-3 font-mono text-sm min-h-[150px] bg-slate-50 rounded-md"
+                              placeholder="Write your corrected version of the code here..."
+                              value={codeInputs[question.id] || ''}
+                              onChange={(e) => handleCodeChange(question.id, e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Error descriptions */}
+                        {question.errorDescriptions && question.errorDescriptions.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">Errors to Fix:</h3>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                              {question.errorDescriptions.map((error, index) => (
+                                <li key={index}>{error}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Solution display */}
+                        {showSolution[question.id] && (
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">Correct Solution:</h3>
+                            <div className="bg-[#1E293B] p-4 rounded-md font-mono text-sm text-[#E5E7EB]">
+                              <CodeBlock 
+                                code={question.correctCode || ''} 
+                                language={question.language || 'javascript'} 
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Controls */}
+                        <div className="flex flex-wrap gap-2">
+                          {!question.hideSolution && (
+                            <Button 
+                              variant="outline" 
+                              className="text-sm border-green-500 text-green-700 bg-green-50 hover:bg-green-100"
+                              onClick={() => toggleSolution(question.id)}
+                            >
+                              {showSolution[question.id] ? 'Hide Solution' : 'Show Solution'}
+                            </Button>
+                          )}
+                          
+                          {question.hintComment && (
+                            <Button 
+                              variant="outline" 
+                              className="text-sm border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100"
+                              onClick={() => toggleHint(question.id)}
+                            >
+                              {showHint[question.id] ? 'Hide Hint' : 'Show Hint'}
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Hint display */}
+                        {question.hintComment && showHint[question.id] && (
+                          <div className="bg-amber-50 border border-amber-200 p-3 rounded-md">
+                            <div className="flex items-start">
+                              <span className="text-amber-500 mr-2 text-xl">💡</span>
+                              <p className="text-amber-800 text-sm">{question.hintComment}</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </>
                   )}

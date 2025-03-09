@@ -7,7 +7,8 @@ import {
   Circle, 
   FileCode,
   AlignLeft,
-  TextQuote
+  TextQuote,
+  AlertTriangle
 } from 'lucide-react';
 
 const questionTypes = [
@@ -45,6 +46,11 @@ const questionTypes = [
     type: 'text' as QuestionType, 
     icon: TextQuote, 
     label: 'Text Question' 
+  },
+  {
+    type: 'find-code-errors' as QuestionType,
+    icon: AlertTriangle,
+    label: 'Find and Fix Code Errors'
   }
 ];
 

@@ -72,18 +72,14 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         return 'What is the correct way to declare a constant in JavaScript?';
       case 'fill-gaps':
         return 'Complete the JavaScript function that filters an array to return only even numbers:';
-      case 'find-errors':
-        return 'Find and select the lines that contain errors in this Python code:';
       case 'jigsaw':
         return 'Arrange the code blocks to form a valid function:';
-      case 'image-choice':
-        return 'Which image shows the correct output of this code?';
-      case 'video-choice':
-        return 'After watching the video, which approach is correct?';
       case 'fill-whole':
         return 'Implement the missing code section to complete this function:';
       case 'text':
         return 'What programming language is primarily used for front-end web development?';
+      case 'find-code-errors':
+        return 'Find and fix the errors in the following code:';
       default:
         return 'New Question';
     }
@@ -109,6 +105,29 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           { id: generateId(), content: '}', correctPosition: 4, language: 'javascript' }
         ]
       }),
+      ...(selectedQuestionType === 'find-code-errors' && {
+        codeWithErrors: `function calculateAverage(numbers) {
+  let sum == 0;
+  for (i in numbers) {
+    sum += numbers[i]
+  }
+  return sum / numbers.length();
+}`,
+        correctCode: `function calculateAverage(numbers) {
+  let sum = 0;
+  for (let i = 0; i < numbers.length; i++) {
+    sum += numbers[i];
+  }
+  return sum / numbers.length;
+}`,
+        errorDescriptions: [
+          'Assignment operator uses == instead of =',
+          'Loop variable i is not properly declared with let/const',
+          'Missing semicolon after array access',
+          'length is a property, not a method'
+        ],
+        language: 'javascript'
+      }),
       ...(selectedQuestionType === 'multiple-choice' && {
         options: [
           { id: generateId(), text: 'let x = 10;', isCorrect: true, feedback: 'Correct! \'let\' is the modern way to declare block-scoped variables in JavaScript.' },
@@ -133,18 +152,6 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           { id: generateId(), position: 2, answer: 'num % 2 === 0' }
         ],
         availableSnippets: ['filter', 'map', 'forEach', 'reduce', 'num % 2 === 0', 'num % 2 !== 0', 'num > 0']
-      }),
-      ...(selectedQuestionType === 'find-errors' && {
-        code: 'def calculate_average(numbers):\n    total = 0\n    count = 0\n    for num in numers:\n        total += num\n        count += 1\n    return total / Count\n    \nnums = [1, 2, 3, 4, 5]\nprint(calculate_average(nums))',
-        errorLines: [
-          { lineNumber: 4, code: '    for num in numers:' },
-          { lineNumber: 7, code: '    return total / Count' }
-        ],
-        errors: [
-          'Line 4: Variable name typo (numers)',
-          'Line 7: Case sensitivity error (Count)',
-          'Line 9: Missing colon after nums declaration' 
-        ]
       }),
       ...(selectedQuestionType === 'jigsaw' && {
         jigsawPieces: [

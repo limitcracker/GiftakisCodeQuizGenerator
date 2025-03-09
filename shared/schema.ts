@@ -28,7 +28,8 @@ const questionTypes = [
   'multiple-choice',
   'single-choice',
   'fill-whole',
-  'text'
+  'text',
+  'find-code-errors'
 ] as const;
 
 export const questionTypeEnum = z.enum(questionTypes);
@@ -72,6 +73,11 @@ export const questionSchema = z.object({
   codeBlocks: z.array(codeOrderBlockSchema).optional(),
   options: z.array(multipleChoiceOptionSchema).optional(),
   codeExample: z.string().optional(),
+  
+  // Find Code Errors specific properties
+  codeWithErrors: z.string().optional(),
+  correctCode: z.string().optional(),
+  errorDescriptions: z.array(z.string()).optional(),
   
   codeWithGaps: z.string().optional(),
   gaps: z.array(codeGapSchema).optional(),
