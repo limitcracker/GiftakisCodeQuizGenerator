@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Play } from 'lucide-react';
-import { Quiz, Question } from '@/types';
+import { Quiz, Question, CodeOrderBlock } from '@/types';
 import { CodeBlock } from '@/components/CodeBlock';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 interface PreviewModalProps {
   quiz: Quiz;
@@ -18,6 +19,8 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
   const [isRunning, setIsRunning] = useState<{[key: string]: boolean}>({});
   const [selectedAnswers, setSelectedAnswers] = useState<{[key: string]: string | string[]}>({});
   const [feedback, setFeedback] = useState<{[key: string]: { isCorrect: boolean; message: string }}>({});
+  const [orderedBlocks, setOrderedBlocks] = useState<{[key: string]: CodeOrderBlock[]}>({});
+  const [userOrderedBlocks, setUserOrderedBlocks] = useState<{[key: string]: CodeOrderBlock[]}>({});
   
   const handleClickOutside = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -30,6 +33,29 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
       ...prev,
       [questionId]: !prev[questionId]
     }));
+
+    if (!showSolution[questionId] && orderedBlocks[questionId]) {
+      // Store current user order before showing solution
+      setUserOrderedBlocks(prev => ({
+        ...prev,
+        [questionId]: [...orderedBlocks[questionId]]
+      }));
+      // Show correct order
+      const correctOrder = [...orderedBlocks[questionId]]
+        .sort((a, b) => a.correctPosition - b.correctPosition);
+      setOrderedBlocks(prev => ({
+        ...prev,
+        [questionId]: correctOrder
+      }));
+    } else {
+      // Restore user's order when hiding solution
+      if (userOrderedBlocks[questionId]) {
+        setOrderedBlocks(prev => ({
+          ...prev,
+          [questionId]: [...userOrderedBlocks[questionId]]
+        }));
+      }
+    }
   };
   
   const toggleHint = (questionId: string) => {
@@ -144,6 +170,39 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
   };
 
   const checkAnswer = (question: Question) => {
+    // For code-order questions
+    if (question.type === 'code-order') {
+      if (!question.codeBlocks || !orderedBlocks[question.id]) {
+        setFeedback(prev => ({
+          ...prev,
+          [question.id]: {
+            isCorrect: false,
+            message: 'Please arrange the code blocks first.'
+          }
+        }));
+        return;
+      }
+
+      const currentOrder = orderedBlocks[question.id].map((block, index) => ({
+        position: index + 1,
+        correctPosition: block.correctPosition
+      }));
+
+      const isCorrect = currentOrder.every(block => block.position === block.correctPosition);
+
+      setFeedback(prev => ({
+        ...prev,
+        [question.id]: {
+          isCorrect,
+          message: isCorrect 
+            ? 'Correct! The code blocks are in the right order.' 
+            : 'Incorrect. Try rearranging the blocks to match the correct order. Click "Show Solution" to see the correct arrangement.'
+        }
+      }));
+      return;
+    }
+
+    // For single/multiple choice questions
     const selectedAnswer = selectedAnswers[question.id];
     
     if (!selectedAnswer) {
@@ -169,6 +228,83 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
             ? 'Correct!' 
             : 'Incorrect. Try again or click "Show Solution" to see the answer.'
         }
+      }));
+    } else if (question.type === 'multiple-choice') {
+      const selectedAnswerArray = Array.isArray(selectedAnswer) ? selectedAnswer : [selectedAnswer];
+      const correctOptions = question.options?.filter(opt => opt.isCorrect) || [];
+      const correctOptionIds = correctOptions.map(opt => opt.id);
+      
+      // Check if all correct options are selected and no incorrect options are selected
+      const allCorrectSelected = correctOptionIds.every(id => selectedAnswerArray.includes(id));
+      const noIncorrectSelected = selectedAnswerArray.every(id => correctOptionIds.includes(id));
+      const isCorrect = allCorrectSelected && noIncorrectSelected;
+      
+      setFeedback(prev => ({
+        ...prev,
+        [question.id]: {
+          isCorrect,
+          message: isCorrect 
+            ? 'Correct! You selected all the right answers.' 
+            : allCorrectSelected 
+              ? 'Almost there! You selected all correct answers but also some incorrect ones.' 
+              : 'Incorrect. Make sure to select all correct answers and only correct answers.'
+        }
+      }));
+    }
+  };
+
+  const handleDragEnd = (result: any, questionId: string) => {
+    if (!result.destination) return;
+
+    const blocks = orderedBlocks[questionId] || [];
+    const reorderedBlocks = Array.from(blocks);
+    const [removed] = reorderedBlocks.splice(result.source.index, 1);
+    reorderedBlocks.splice(result.destination.index, 0, removed);
+
+    setOrderedBlocks(prev => ({
+      ...prev,
+      [questionId]: reorderedBlocks
+    }));
+  };
+
+  const checkCodeOrder = (question: Question) => {
+    if (!question.codeBlocks || !orderedBlocks[question.id]) {
+      setFeedback(prev => ({
+        ...prev,
+        [question.id]: {
+          isCorrect: false,
+          message: 'Please arrange the code blocks first.'
+        }
+      }));
+      return;
+    }
+
+    const currentOrder = orderedBlocks[question.id].map((block, index) => ({
+      position: index + 1,
+      correctPosition: block.correctPosition
+    }));
+
+    const isCorrect = currentOrder.every(block => block.position === block.correctPosition);
+
+    setFeedback(prev => ({
+      ...prev,
+      [question.id]: {
+        isCorrect,
+        message: isCorrect 
+          ? 'Correct! The code blocks are in the right order.' 
+          : 'Incorrect. Try rearranging the blocks to match the correct order. Click "Show Solution" to see the correct arrangement.'
+      }
+    }));
+  };
+
+  // Initialize ordered blocks when question is first rendered
+  const initializeCodeBlocks = (question: Question) => {
+    if (question.type === 'code-order' && Array.isArray(question.codeBlocks) && !orderedBlocks[question.id]) {
+      // Randomize the initial order
+      const shuffledBlocks = [...question.codeBlocks].sort(() => Math.random() - 0.5);
+      setOrderedBlocks(prev => ({
+        ...prev,
+        [question.id]: shuffledBlocks
       }));
     }
   };
@@ -217,16 +353,56 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                   
                   {question.type === 'code-order' && (
                     <>
-                      <div className="space-y-2 mb-4">
-                        {(question.codeBlocks || []).map((block, i) => (
-                          <div key={i} className="bg-[#1E293B] text-[#E5E7EB] p-3 rounded font-mono text-sm border border-blue-500 cursor-move">
-                            <CodeBlock code={block.content} language={block.language || 'javascript'} />
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {/* Code order question controls */}
-                      <div className="flex flex-wrap gap-2 mb-4">
+                      {(() => {
+                        initializeCodeBlocks(question);
+                        return null;
+                      })()}
+                      <DragDropContext onDragEnd={(result) => handleDragEnd(result, question.id)}>
+                        <Droppable droppableId={`code-blocks-${question.id}`}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              className="space-y-2"
+                            >
+                              {(orderedBlocks[question.id] || []).map((block, index) => (
+                                <Draggable
+                                  key={block.id}
+                                  draggableId={block.id}
+                                  index={index}
+                                >
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className={`bg-[#1E293B] text-[#E5E7EB] p-3 rounded font-mono text-sm border ${
+                                        showSolution[question.id]
+                                          ? block.correctPosition === index + 1
+                                            ? 'border-green-500 bg-green-50/10'
+                                            : 'border-red-500 bg-red-50/10'
+                                          : feedback[question.id]?.isCorrect
+                                          ? 'border-green-500'
+                                          : feedback[question.id]?.isCorrect === false
+                                          ? 'border-red-500'
+                                          : 'border-blue-500'
+                                      } ${snapshot.isDragging ? 'opacity-50' : ''} cursor-move relative`}
+                                    >
+                                      <div className="absolute -top-2 -right-2 bg-gray-700 text-white text-xs px-2 py-1 rounded">
+                                        {showSolution[question.id] ? `Position ${block.correctPosition}` : `Block ${index + 1}`}
+                                      </div>
+                                      <CodeBlock code={block.content} language={block.language || 'javascript'} />
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </DragDropContext>
+
+                      <div className="flex flex-wrap gap-2 mt-4">
                         {!question.hideSolution && (
                           <Button 
                             variant="outline" 
@@ -236,45 +412,7 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                             {showSolution[question.id] ? 'Hide Solution' : 'Show Solution'}
                           </Button>
                         )}
-                        
-                        {question.hintComment && (
-                          <Button 
-                            variant="outline" 
-                            className="text-sm border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100"
-                            onClick={() => toggleHint(question.id)}
-                          >
-                            {showHint[question.id] ? 'Hide Hint' : 'Show Hint'}
-                          </Button>
-                        )}
                       </div>
-                      
-                      {showSolution[question.id] && (
-                        <div className="bg-green-50 border border-green-200 p-3 rounded-md mb-4">
-                          <h3 className="text-green-800 text-sm font-medium mb-2">Solution - Correct Order:</h3>
-                          <div className="space-y-2">
-                            {(question.codeBlocks || [])
-                              .slice()
-                              .sort((a, b) => a.correctPosition - b.correctPosition)
-                              .map((block, i) => (
-                                <div key={i} className="bg-[#1E293B] text-[#E5E7EB] p-3 rounded font-mono text-sm border border-green-500">
-                                  <div className="text-xs text-green-500 mb-1">Position {block.correctPosition}</div>
-                                  <CodeBlock code={block.content} language={block.language || 'javascript'} />
-                                </div>
-                              ))
-                            }
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Hint display for code-order */}
-                      {question.hintComment && showHint[question.id] && (
-                        <div className="bg-amber-50 border border-amber-200 p-3 rounded-md mb-4">
-                          <div className="flex items-start">
-                            <span className="text-amber-500 mr-2 text-xl">💡</span>
-                            <p className="text-amber-800 text-sm">{question.hintComment}</p>
-                          </div>
-                        </div>
-                      )}
                     </>
                   )}
                   

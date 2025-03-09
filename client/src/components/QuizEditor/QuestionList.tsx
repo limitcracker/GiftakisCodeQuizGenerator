@@ -4,7 +4,6 @@ import type { QuestionType } from '@/types';
 import CodeOrderQuestion from '@/components/QuestionTypes/CodeOrderQuestion';
 import MultipleChoiceQuestion from '@/components/QuestionTypes/MultipleChoiceQuestion';
 import CodeFillQuestion from '@/components/QuestionTypes/CodeFillQuestion';
-import CodeErrorQuestion from '@/components/QuestionTypes/CodeErrorQuestion';
 import JigsawQuestion from '@/components/QuestionTypes/JigsawQuestion';
 import FillWholeQuestion from '@/components/QuestionTypes/FillWholeQuestion';
 import TextQuestion from '@/components/QuestionTypes/TextQuestion';
@@ -42,8 +41,6 @@ export default function QuestionList() {
         return <MultipleChoiceQuestion key={question.id} {...commonProps} />;
       case 'fill-gaps':
         return <CodeFillQuestion key={question.id} {...commonProps} />;
-      case 'find-errors':
-        return <CodeErrorQuestion key={question.id} {...commonProps} />;
       case 'jigsaw':
         return <JigsawQuestion key={question.id} {...commonProps} />;
       case 'fill-whole':

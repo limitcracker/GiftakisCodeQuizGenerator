@@ -21,19 +21,17 @@ export type InsertQuiz = z.infer<typeof insertQuizSchema>;
 export type Quiz = typeof quizzes.$inferSelect;
 
 // Types for the content field (not directly mapped to DB columns)
-export const questionTypeEnum = z.enum([
+const questionTypes = [
   'code-order',
   'jigsaw',
   'fill-gaps',
   'multiple-choice',
   'single-choice',
-  'find-errors',
-  'image-choice',
-  'video-choice',
-  'text',
-  'fill-whole'
-]);
+  'fill-whole',
+  'text'
+] as const;
 
+export const questionTypeEnum = z.enum(questionTypes);
 export type QuestionType = z.infer<typeof questionTypeEnum>;
 
 export const codeOrderBlockSchema = z.object({
@@ -63,7 +61,7 @@ export const codeErrorLineSchema = z.object({
 
 export const questionSchema = z.object({
   id: z.string(),
-  type: questionTypeEnum,
+  type: z.enum(questionTypeEnum),
   title: z.string(),
   explanation: z.string().optional(),
   order: z.number(),

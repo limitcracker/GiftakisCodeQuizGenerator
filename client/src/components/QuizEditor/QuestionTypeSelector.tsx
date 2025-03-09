@@ -5,9 +5,6 @@ import {
   Code, 
   CheckSquare, 
   Circle, 
-  Bug, 
-  Image, 
-  Video,
   FileCode,
   AlignLeft,
   TextQuote
@@ -45,24 +42,9 @@ const questionTypes = [
     label: 'Single Choice' 
   },
   { 
-    type: 'find-errors' as QuestionType, 
-    icon: Bug, 
-    label: 'Find Code Errors' 
-  },
-  { 
     type: 'text' as QuestionType, 
     icon: TextQuote, 
     label: 'Text Question' 
-  },
-  { 
-    type: 'image-choice' as QuestionType, 
-    icon: Image, 
-    label: 'Image Based Questions' 
-  },
-  { 
-    type: 'video-choice' as QuestionType, 
-    icon: Video, 
-    label: 'Video Based Questions' 
   }
 ];
 

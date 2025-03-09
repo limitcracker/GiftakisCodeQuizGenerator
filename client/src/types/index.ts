@@ -5,9 +5,6 @@ export type QuestionType =
   | 'fill-gaps' 
   | 'multiple-choice' 
   | 'single-choice'
-  | 'find-errors'
-  | 'image-choice'
-  | 'video-choice'
   | 'fill-whole'
   | 'text';
 
@@ -52,11 +49,6 @@ export interface Question {
   gaps?: CodeGap[];
   availableSnippets?: string[];
   
-  // Find errors
-  code?: string;
-  errorLines?: CodeErrorLine[];
-  errors?: string[];
-  
   // Jigsaw puzzle
   jigsawPieces?: JigsawPiece[];
   gridSize?: { rows: number; columns: number };
@@ -99,12 +91,6 @@ export interface CodeGap {
   id: string;
   position: number;
   answer: string;
-}
-
-// Code Error Finding
-export interface CodeErrorLine {
-  lineNumber: number;
-  code: string;
 }
 
 // Jigsaw Puzzle
