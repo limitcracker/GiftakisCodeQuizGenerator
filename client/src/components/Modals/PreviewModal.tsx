@@ -16,6 +16,8 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
   const [codeInputs, setCodeInputs] = useState<{[key: string]: string}>({});
   const [codeOutputs, setCodeOutputs] = useState<{[key: string]: string}>({});
   const [isRunning, setIsRunning] = useState<{[key: string]: boolean}>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<{[key: string]: string | string[]}>({});
+  const [feedback, setFeedback] = useState<{[key: string]: { isCorrect: boolean; message: string }}>({});
   
   const handleClickOutside = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -119,6 +121,56 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
       ...prev,
       [question.id]: false
     }));
+  };
+
+  const handleAnswerChange = (questionId: string, optionId: string, type: 'single-choice' | 'multiple-choice') => {
+    if (type === 'single-choice') {
+      setSelectedAnswers(prev => ({
+        ...prev,
+        [questionId]: optionId
+      }));
+    } else {
+      setSelectedAnswers(prev => ({
+        ...prev,
+        [questionId]: prev[questionId] 
+          ? Array.isArray(prev[questionId])
+            ? (prev[questionId] as string[]).includes(optionId)
+              ? (prev[questionId] as string[]).filter(id => id !== optionId)
+              : [...(prev[questionId] as string[]), optionId]
+            : [optionId]
+          : [optionId]
+      }));
+    }
+  };
+
+  const checkAnswer = (question: Question) => {
+    const selectedAnswer = selectedAnswers[question.id];
+    
+    if (!selectedAnswer) {
+      setFeedback(prev => ({
+        ...prev,
+        [question.id]: {
+          isCorrect: false,
+          message: 'Please select an answer.'
+        }
+      }));
+      return;
+    }
+
+    if (question.type === 'single-choice') {
+      const correctOption = question.options?.find(opt => opt.isCorrect);
+      const isCorrect = selectedAnswer === correctOption?.id;
+      
+      setFeedback(prev => ({
+        ...prev,
+        [question.id]: {
+          isCorrect,
+          message: isCorrect 
+            ? 'Correct!' 
+            : 'Incorrect. Try again or click "Show Solution" to see the answer.'
+        }
+      }));
+    }
   };
 
   return (
@@ -228,6 +280,13 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                   
                   {(question.type === 'multiple-choice' || question.type === 'single-choice') && (
                     <>
+                      {(() => {
+                        console.log('Full question object:', JSON.stringify(question, null, 2));
+                        console.log('Question type:', question.type);
+                        console.log('Question options:', question.options);
+                        console.log('Is condition true:', question.type === 'multiple-choice' || question.type === 'single-choice');
+                        return null;
+                      })()}
                       {question.codeExample && (
                         <div className="mb-4 bg-[#1E293B] p-3 rounded-md text-[#E5E7EB] font-mono text-sm">
                           <CodeBlock code={question.codeExample} language="javascript" />
@@ -241,12 +300,23 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                             className={`p-3 border rounded-md hover:bg-gray-50 cursor-pointer flex items-start ${
                               showSolution[question.id] && option.isCorrect 
                                 ? 'border-green-500 bg-green-50' 
+                                : feedback[question.id]?.isCorrect && selectedAnswers[question.id] === option.id
+                                ? 'border-green-500 bg-green-50'
+                                : feedback[question.id]?.isCorrect === false && selectedAnswers[question.id] === option.id
+                                ? 'border-red-500 bg-red-50'
                                 : 'border-gray-200'
                             }`}
+                            onClick={() => handleAnswerChange(question.id, option.id, question.type as 'single-choice' | 'multiple-choice')}
                           >
                             <input 
                               type={question.type === 'multiple-choice' ? 'checkbox' : 'radio'} 
                               name={`question-${question.id}`}
+                              checked={
+                                Array.isArray(selectedAnswers[question.id])
+                                  ? (selectedAnswers[question.id] as string[]).includes(option.id)
+                                  : selectedAnswers[question.id] === option.id
+                              }
+                              onChange={() => {}} // Handled by div onClick
                               className="mt-1 mr-3" 
                             />
                             <div className="flex-1">
@@ -451,8 +521,19 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                     </>
                   )}
                   
+                  {feedback[question.id] && (
+                    <div className={`p-3 mb-4 rounded-md ${
+                      feedback[question.id].isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                    }`}>
+                      {feedback[question.id].message}
+                    </div>
+                  )}
+                  
                   <div className="flex justify-end">
-                    <Button className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
+                    <Button 
+                      onClick={() => checkAnswer(question)}
+                      className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+                    >
                       Check Answer
                     </Button>
                   </div>

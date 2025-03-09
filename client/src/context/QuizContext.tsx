@@ -118,6 +118,14 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         ],
         codeExample: '// Examples of variable declarations\nlet x = 10;\nconst PI = 3.14;\nvar name = "JavaScript";'
       }),
+      ...(selectedQuestionType === 'single-choice' && {
+        options: [
+          { id: generateId(), text: 'Option 1', isCorrect: true, feedback: 'This is the correct answer!' },
+          { id: generateId(), text: 'Option 2', isCorrect: false, feedback: 'This is incorrect. Try again.' },
+          { id: generateId(), text: 'Option 3', isCorrect: false, feedback: 'This is incorrect. Try again.' },
+          { id: generateId(), text: 'Option 4', isCorrect: false, feedback: 'This is incorrect. Try again.' }
+        ]
+      }),
       ...(selectedQuestionType === 'fill-gaps' && {
         codeWithGaps: 'function filterEvenNumbers(numbers) {\n  return numbers.[GAP_1](function(num) {\n    return [GAP_2];\n  });\n}',
         gaps: [
