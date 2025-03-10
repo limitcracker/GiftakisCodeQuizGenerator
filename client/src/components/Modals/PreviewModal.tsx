@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { X, Play } from 'lucide-react';
 import { Quiz, Question, CodeOrderBlock } from '@/types';
 import { CodeBlock } from '@/components/CodeBlock';
+import ReactMarkdown from 'react-markdown';
 import type { 
   DragDropContextProps, 
   DroppableProps, 
@@ -244,6 +245,25 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
         [question.id]: isCorrect 
           ? 'Correct! Your code matches the solution.' 
           : 'Incorrect. Your code does not match the solution. Try again or click "Show Solution" to see the correct code.'
+      }));
+      return;
+    }
+
+    // For text questions
+    if (question.type === 'text') {
+      const userAnswer = codeInputs[question.id]?.trim() || '';
+      
+      if (!userAnswer) {
+        setFeedback(prev => ({
+          ...prev,
+          [question.id]: 'Please write your answer before checking.'
+        }));
+        return;
+      }
+
+      setFeedback(prev => ({
+        ...prev,
+        [question.id]: 'Your answer has been recorded. Check the solution to see a sample answer.'
       }));
       return;
     }
@@ -849,6 +869,74 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                         <div className="bg-gray-800 text-white p-4 rounded-md mb-4 font-mono text-sm overflow-auto max-h-[300px]">
                           <h3 className="text-gray-400 text-xs uppercase mb-2">Output:</h3>
                           <pre>{codeOutputs[question.id]}</pre>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
+                  {question.type === 'text' && (
+                    <>
+                      {question.codeExample && (
+                        <div className="mb-4 bg-[#1E293B] p-3 rounded-md text-[#E5E7EB] font-mono text-sm">
+                          <CodeBlock code={question.codeExample} language="javascript" />
+                        </div>
+                      )}
+                      
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Your Answer:</h3>
+                          <textarea
+                            className="w-full p-3 min-h-[250px] border border-gray-200 rounded-md font-mono text-sm bg-slate-50"
+                            placeholder="Write your answer here... (Markdown supported)"
+                            value={codeInputs[question.id] || ''}
+                            onChange={(e) => handleCodeChange(question.id, e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Preview:</h3>
+                          <div className="w-full min-h-[250px] p-3 border border-gray-200 rounded-md prose prose-sm max-w-none bg-white overflow-auto">
+                            <ReactMarkdown>{codeInputs[question.id] || ''}</ReactMarkdown>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {!question.hideSolution && (
+                          <Button 
+                            variant="outline" 
+                            className="text-sm border-green-500 text-green-700 bg-green-50 hover:bg-green-100"
+                            onClick={() => toggleSolution(question.id)}
+                          >
+                            {showSolution[question.id] ? 'Hide Solution' : 'Show Solution'}
+                          </Button>
+                        )}
+                        
+                        {question.hintComment && (
+                          <Button 
+                            variant="outline" 
+                            className="text-sm border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100"
+                            onClick={() => toggleHint(question.id)}
+                          >
+                            {showHint[question.id] ? 'Hide Hint' : 'Show Hint'}
+                          </Button>
+                        )}
+                      </div>
+
+                      {showSolution[question.id] && question.textAnswer && (
+                        <div className="bg-green-50 border border-green-200 p-4 rounded-md mb-4">
+                          <h3 className="font-medium text-green-800 mb-2">Sample Solution:</h3>
+                          <div className="prose prose-sm max-w-none">
+                            <ReactMarkdown>{question.textAnswer}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {question.hintComment && showHint[question.id] && (
+                        <div className="bg-amber-50 border border-amber-200 p-3 rounded-md mb-4">
+                          <div className="flex items-start">
+                            <span className="text-amber-500 mr-2 text-xl">💡</span>
+                            <p className="text-amber-800 text-sm">{question.hintComment}</p>
+                          </div>
                         </div>
                       )}
                     </>
