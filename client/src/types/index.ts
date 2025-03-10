@@ -29,6 +29,7 @@ export interface Quiz {
   style?: QuizStyle; // Custom styling options for the quiz
   stepByStep?: boolean; // Whether to show questions one at a time
   requireCorrectAnswer?: boolean; // Whether to require correct answers before proceeding
+  language: string;
 }
 
 export interface Question {
@@ -74,7 +75,7 @@ export interface Question {
   minLength?: number;            // Minimum character length for answers
   maxLength?: number;            // Maximum character length for answers
   
-  language?: string;  // Programming language for syntax highlighting
+  language: string;  // Programming language for syntax highlighting
   hintComment?: string;  // Optional hint to show in comments
 }
 

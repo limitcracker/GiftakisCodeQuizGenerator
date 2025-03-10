@@ -1,4 +1,5 @@
 import { QuizStyle } from '@/types';
+import i18next from 'i18next';
 
 export function generateHtml(quiz: {
   id: string;
@@ -8,8 +9,10 @@ export function generateHtml(quiz: {
   timeLimit?: number | null;
   hideFooter?: boolean;
   style?: QuizStyle;
+  language?: string;
 }): string {
   const { title, description } = quiz;
+  const t = i18next.getFixedT(quiz.language || 'en');
   
   // Helper function to escape HTML special characters
   const escape = (text: string) => {
@@ -58,12 +61,12 @@ export function generateHtml(quiz: {
           
           // Only show solution button if solution is available and not explicitly hidden
           if (!question.hideSolution && question.codeBlocks && question.codeBlocks.length > 0) {
-            questionHtml += '<button class="cq-button cq-show-order-solution">Show Solution</button>\n';
+            questionHtml += `<button class="cq-button cq-show-order-solution">${t('quiz.preview.showSolution')}</button>\n`;
           }
           
           // Only show hint button if hint is available
           if (question.hintComment) {
-            questionHtml += '<button class="cq-button cq-show-hint">Show Hint</button>\n';
+            questionHtml += `<button class="cq-button cq-show-hint">${t('quiz.preview.showHint')}</button>\n`;
           }
           
           questionHtml += '</div>\n';
@@ -79,7 +82,7 @@ export function generateHtml(quiz: {
           const hasSolution = question.codeBlocks && question.codeBlocks.length > 0;
           if (!question.hideSolution && hasSolution) {
             questionHtml += '<div class="cq-solution" style="display: none;">\n';
-            questionHtml += '<h3>Solution:</h3>\n';
+            questionHtml += `<h3>${t('quiz.preview.solution')}:</h3>\n`;
             questionHtml += '<div class="cq-solution-blocks">\n';
             
             // Sort blocks by correctPosition before rendering solution
@@ -88,7 +91,7 @@ export function generateHtml(quiz: {
             for (let i = 0; i < sortedBlocks.length; i++) {
               const block = sortedBlocks[i];
               questionHtml += '<div class="cq-solution-block">\n';
-              questionHtml += '<pre><code class="language-' + block.language + '">' + escape(block.content) + '</code></pre>\n';
+              questionHtml += `<pre><code class="language-${block.language || 'javascript'}">${escape(block.content)}</code></pre>\n`;
               questionHtml += '</div>\n';
             }
             

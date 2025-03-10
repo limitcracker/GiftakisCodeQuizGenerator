@@ -9,6 +9,8 @@ import { PencilIcon, GripIcon, XIcon, PlusIcon, EyeOffIcon } from 'lucide-react'
 import { CodeBlock } from '@/components/CodeBlock';
 import { Question, CodeOrderBlock } from '@/types';
 import QuestionTimerSettings from '@/components/QuizEditor/QuestionTimerSettings';
+import { useTranslation } from 'react-i18next';
+import { useQuiz } from '@/context/QuizContext';
 
 interface CodeOrderQuestionProps {
   question: Question;
@@ -25,6 +27,8 @@ export default function CodeOrderQuestion({
   onMoveUp,
   onMoveDown
 }: CodeOrderQuestionProps) {
+  const { t } = useTranslation();
+  const { quizLanguage } = useQuiz();
   const [isEditing, setIsEditing] = useState(false);
   const [localTitle, setLocalTitle] = useState(question.title);
   const [localExplanation, setLocalExplanation] = useState(question.explanation || '');
@@ -84,21 +88,44 @@ export default function CodeOrderQuestion({
     setCodeBlocks(reorderedItems);
   };
 
+  const handleTimeLimitChange = (timeLimit: number | null) => {
+    onUpdate({
+      ...question,
+      timeLimit
+    });
+  };
+
   return (
     <Card className="bg-white rounded-lg shadow-sm">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">
-            Question {question.order} <span className="text-sm font-normal text-gray-500">(Order Code Blocks)</span>
+            {t('quiz.editor.codeOrder.messages.questionType', { number: question.order, lng: quizLanguage })}
           </h2>
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" onClick={onMoveUp}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onMoveUp}
+              title={t('quiz.editor.codeOrder.buttons.moveUp', { lng: quizLanguage })}
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="m18 15-6-6-6 6"/></svg>
             </Button>
-            <Button variant="ghost" size="icon" onClick={onMoveDown}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onMoveDown}
+              title={t('quiz.editor.codeOrder.buttons.moveDown', { lng: quizLanguage })}
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="m6 9 6 6 6-6"/></svg>
             </Button>
-            <Button variant="ghost" size="icon" onClick={onDelete} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onDelete} 
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              title={t('quiz.editor.codeOrder.buttons.delete', { lng: quizLanguage })}
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
             </Button>
           </div>
@@ -106,24 +133,27 @@ export default function CodeOrderQuestion({
         
         <div className="space-y-4">
           <div>
-            <Label htmlFor={`question-title-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">Question</Label>
+            <Label htmlFor={`question-title-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+              {t('quiz.editor.codeOrder.labels.questionTitle', { lng: quizLanguage })}
+            </Label>
             <Input
               id={`question-title-${question.id}`}
               value={localTitle}
               onChange={(e) => setLocalTitle(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              placeholder={t('quiz.editor.codeOrder.placeholders.questionTitle', { lng: quizLanguage })}
             />
           </div>
           
           <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="font-medium">Code Blocks to Order</h3>
+              <h3 className="font-medium">{t('quiz.editor.codeOrder.labels.codeBlocks', { lng: quizLanguage })}</h3>
               <Button 
                 variant="ghost" 
                 onClick={handleAddCodeBlock}
                 className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 text-sm h-8">
                 <PlusIcon className="w-4 h-4 mr-1" />
-                Add Code Block
+                {t('quiz.editor.codeOrder.buttons.addCodeBlock', { lng: quizLanguage })}
               </Button>
             </div>
             
@@ -147,13 +177,28 @@ export default function CodeOrderQuestion({
                                 <GripIcon className="h-4 w-4" />
                               </div>
                               <div className="flex-1">
-                                Block {index + 1} <span className="text-gray-500 text-xs">(Correct Position: {block.correctPosition})</span>
+                                {t('quiz.editor.codeOrder.labels.block', { lng: quizLanguage })} {index + 1} 
+                                <span className="text-gray-500 text-xs">
+                                  ({t('quiz.editor.codeOrder.labels.correctPosition', { lng: quizLanguage })}: {block.correctPosition})
+                                </span>
                               </div>
                               <div>
-                                <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="text-gray-500 hover:text-gray-700 p-1 h-8 w-8">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => setIsEditing(true)} 
+                                  className="text-gray-500 hover:text-gray-700 p-1 h-8 w-8"
+                                  title={t('quiz.editor.codeOrder.buttons.edit', { lng: quizLanguage })}
+                                >
                                   <PencilIcon className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm" onClick={() => handleDeleteBlock(block.id)} className="text-red-500 hover:text-red-700 p-1 h-8 w-8">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => handleDeleteBlock(block.id)} 
+                                  className="text-red-500 hover:text-red-700 p-1 h-8 w-8"
+                                  title={t('quiz.editor.codeOrder.buttons.delete', { lng: quizLanguage })}
+                                >
                                   <XIcon className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -183,7 +228,7 @@ export default function CodeOrderQuestion({
           
           {/* Question Settings */}
           <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-2">
-            <h3 className="font-medium">Question Settings</h3>
+            <h3 className="font-medium">{t('quiz.editor.codeOrder.labels.questionSettings', { lng: quizLanguage })}</h3>
             
             <div className="flex items-center space-x-2">
               <input 
@@ -198,29 +243,26 @@ export default function CodeOrderQuestion({
               />
               <Label htmlFor={`hideSolution-${question.id}`} className="text-sm cursor-pointer flex items-center">
                 <EyeOffIcon className="h-3 w-3 mr-1 text-gray-500" />
-                Hide "Check Solution" button for students
+                {t('quiz.editor.codeOrder.labels.hideSolutionButton', { lng: quizLanguage })}
               </Label>
             </div>
             
-            <p className="text-xs text-gray-500 ml-6">
-              When enabled, students won't be able to see the correct order of code blocks in the quiz.
-              This is useful for assessments where you don't want students to see the correct answer.
-            </p>
-            
             {/* Question Timer Settings */}
             <QuestionTimerSettings 
-              questionId={question.id} 
-              currentTimeLimit={question.timeLimit} 
+              timeLimit={question.timeLimit}
+              onChange={handleTimeLimitChange}
             />
           </div>
           
           <div>
-            <Label htmlFor={`explanation-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">Explanation (Optional)</Label>
+            <Label htmlFor={`explanation-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+              {t('quiz.editor.codeOrder.labels.explanation', { lng: quizLanguage })}
+            </Label>
             <Textarea
               id={`explanation-${question.id}`}
               value={localExplanation}
               onChange={(e) => setLocalExplanation(e.target.value)}
-              placeholder="Add explanation for correct answer..."
+              placeholder={t('quiz.editor.codeOrder.placeholders.explanation', { lng: quizLanguage })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
               rows={2}
             />
@@ -230,7 +272,7 @@ export default function CodeOrderQuestion({
             <Button 
               onClick={handleSave}
               className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
-              Save Question
+              {t('quiz.editor.codeOrder.buttons.edit', { lng: quizLanguage })}
             </Button>
           </div>
         </div>

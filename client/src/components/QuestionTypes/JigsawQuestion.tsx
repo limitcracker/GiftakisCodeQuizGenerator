@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronUp, ChevronDown, Trash2, Plus, Grid2X2, Rows3, ArrowLeftRight, ArrowUpDown } from 'lucide-react';
 import { SyntaxHighlighterWrapper } from '@/lib/syntaxHighlighter';
+import { useTranslation } from 'react-i18next';
+import { useQuiz } from '@/context/QuizContext';
 
 interface JigsawQuestionProps {
   question: Question;
@@ -53,6 +55,8 @@ export default function JigsawQuestion({
   onMoveUp,
   onMoveDown
 }: JigsawQuestionProps) {
+  const { t } = useTranslation();
+  const { quizLanguage } = useQuiz();
   const [previewActive, setPreviewActive] = useState(false);
   const [showGridEditor, setShowGridEditor] = useState(false);
   const [showCompiledCode, setShowCompiledCode] = useState(false);
@@ -308,24 +312,24 @@ export default function JigsawQuestion({
         <div>
           <CardTitle className="flex items-center text-lg font-medium">
             <span className="bg-blue-500 text-white px-2 py-1 rounded-md text-xs mr-2">
-              Question {question.order}
+              {t('quiz.editor.fillGaps.messages.questionType', { number: question.order, lng: quizLanguage })}
             </span>
             <Input 
               value={question.title} 
               onChange={handleTitleChange}
               className="bg-transparent border-none h-auto p-0 text-lg font-medium shadow-none focus-visible:ring-0"
-              placeholder="Enter question title"
+              placeholder={t('quiz.editor.fillGaps.placeholders.questionTitle', { lng: quizLanguage })}
             />
           </CardTitle>
         </div>
         <div className="flex space-x-2">
-          <Button variant="ghost" size="icon" onClick={onMoveUp} title="Move up">
+          <Button variant="ghost" size="icon" onClick={onMoveUp} title={t('quiz.editor.fillGaps.buttons.moveUp', { lng: quizLanguage })}>
             <ChevronUp className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onMoveDown} title="Move down">
+          <Button variant="ghost" size="icon" onClick={onMoveDown} title={t('quiz.editor.fillGaps.buttons.moveDown', { lng: quizLanguage })}>
             <ChevronDown className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onDelete} title="Delete question">
+          <Button variant="ghost" size="icon" onClick={onDelete} title={t('quiz.editor.fillGaps.buttons.delete', { lng: quizLanguage })}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -333,9 +337,11 @@ export default function JigsawQuestion({
 
       <CardContent className="pt-6 space-y-4">
         <div className="space-y-2">
-          <Label>Description (instructions for the student)</Label>
+          <Label>
+            {t('quiz.editor.jigsawDescription', { lng: quizLanguage })}
+          </Label>
           <Textarea 
-            placeholder="Enter instructions for the student"
+            placeholder={t('quiz.editor.jigsawDescriptionPlaceholder', { lng: quizLanguage })}
             value={question.jigsawDescription || ''}
             onChange={handleDescriptionChange}
             className="min-h-20"
@@ -344,7 +350,7 @@ export default function JigsawQuestion({
 
         <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-sm font-medium">Grid Configuration</h3>
+            <h3 className="text-sm font-medium">{t('quiz.editor.fillGaps.labels.gridConfiguration', { lng: quizLanguage })}</h3>
             <Button
               variant="outline"
               size="sm"
@@ -352,7 +358,10 @@ export default function JigsawQuestion({
               className="flex items-center space-x-1"
             >
               <Grid2X2 className="h-3.5 w-3.5 mr-1" />
-              {showGridEditor ? 'Hide' : 'Show'} Grid Editor
+              {showGridEditor 
+                ? t('quiz.editor.fillGaps.buttons.hideGridEditor', { lng: quizLanguage })
+                : t('quiz.editor.fillGaps.buttons.showGridEditor', { lng: quizLanguage })
+              }
             </Button>
           </div>
 
@@ -360,7 +369,7 @@ export default function JigsawQuestion({
             <>
               <div className="flex flex-col sm:flex-row gap-4 mb-4">
                 <div className="flex flex-1 items-center space-x-2">
-                  <Label htmlFor="rows" className="whitespace-nowrap">Rows:</Label>
+                  <Label htmlFor="rows" className="whitespace-nowrap">{t('quiz.editor.fillGaps.labels.row', { lng: quizLanguage })}:</Label>
                   <div className="flex items-center">
                     <Button 
                       variant="outline" 
@@ -389,7 +398,7 @@ export default function JigsawQuestion({
                   </div>
                 </div>
                 <div className="flex flex-1 items-center space-x-2">
-                  <Label htmlFor="columns" className="whitespace-nowrap">Columns:</Label>
+                  <Label htmlFor="columns" className="whitespace-nowrap">{t('quiz.editor.fillGaps.labels.column', { lng: quizLanguage })}:</Label>
                   <div className="flex items-center">
                     <Button 
                       variant="outline" 
@@ -420,7 +429,7 @@ export default function JigsawQuestion({
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                <div className="text-sm text-gray-600 mb-2 w-full">Templates:</div>
+                <div className="text-sm text-gray-600 mb-2 w-full">{t('quiz.editor.templates', { lng: quizLanguage })}:</div>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -428,7 +437,7 @@ export default function JigsawQuestion({
                   className="flex items-center"
                 >
                   <Rows3 className="h-3.5 w-3.5 mr-1" /> 
-                  Linear (1D)
+                  {t('quiz.editor.linear', { lng: quizLanguage })}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -437,7 +446,7 @@ export default function JigsawQuestion({
                   className="flex items-center"
                 >
                   <Grid2X2 className="h-3.5 w-3.5 mr-1" /> 
-                  Grid (2D)
+                  {t('quiz.editor.grid', { lng: quizLanguage })}
                 </Button>
               </div>
 
@@ -448,10 +457,12 @@ export default function JigsawQuestion({
 
         <div className="space-y-2 mt-4">
           <div className="flex justify-between items-center">
-            <Label>Jigsaw Pieces (will be shuffled for students)</Label>
+            <Label>
+              {t('quiz.editor.jigsawPieces', { lng: quizLanguage })}
+            </Label>
             <Button onClick={handleAddPiece} size="sm" variant="outline" className="flex items-center">
               <Plus className="h-3.5 w-3.5 mr-1" />
-              Add Piece
+              {t('quiz.editor.addPiece', { lng: quizLanguage })}
             </Button>
           </div>
 
@@ -460,7 +471,9 @@ export default function JigsawQuestion({
               <Card key={piece.id} className="border border-slate-200">
                 <CardHeader className="py-2 px-4 bg-slate-50 flex flex-row items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <span className="text-xs font-semibold">Piece {index + 1}</span>
+                    <span className="text-xs font-semibold">
+                      {t('quiz.editor.piece', { lng: quizLanguage })} {index + 1}
+                    </span>
                     <select
                       value={piece.language}
                       onChange={(e) => handleLanguageChange(piece.id, e.target.value)}
@@ -479,6 +492,7 @@ export default function JigsawQuestion({
                       size="icon" 
                       onClick={() => handleMovePieceUp(index)}
                       className="h-6 w-6"
+                      title={t('quiz.editor.fillGaps.buttons.moveUp', { lng: quizLanguage })}
                     >
                       <ChevronUp className="h-3 w-3" />
                     </Button>
@@ -487,6 +501,7 @@ export default function JigsawQuestion({
                       size="icon" 
                       onClick={() => handleMovePieceDown(index)}
                       className="h-6 w-6"
+                      title={t('quiz.editor.fillGaps.buttons.moveDown', { lng: quizLanguage })}
                     >
                       <ChevronDown className="h-3 w-3" />
                     </Button>
@@ -495,25 +510,24 @@ export default function JigsawQuestion({
                       size="icon" 
                       onClick={() => handleDeletePiece(piece.id)}
                       className="h-6 w-6 text-red-500"
+                      title={t('quiz.editor.fillGaps.buttons.delete', { lng: quizLanguage })}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="p-4">
-                  {/* Code content field */}
                   <Textarea
                     value={piece.content}
                     onChange={(e) => handlePieceContentChange(piece.id, e.target.value)}
                     className="font-mono text-sm h-16 bg-slate-50"
-                    placeholder="Enter code snippet for this piece"
+                    placeholder={t('quiz.editor.pieceContent', { lng: quizLanguage })}
                   />
 
-                  {/* Position controls */}
                   <div className="flex items-center gap-4 mt-3">
-                    <div className="text-xs text-gray-600">Position:</div>
+                    <div className="text-xs text-gray-600">{t('quiz.editor.fillGaps.labels.position', { lng: quizLanguage })}:</div>
                     <div className="flex items-center gap-2">
-                      <Label htmlFor={`row-${piece.id}`} className="text-xs">Row:</Label>
+                      <Label htmlFor={`row-${piece.id}`} className="text-xs">{t('quiz.editor.fillGaps.labels.row', { lng: quizLanguage })}:</Label>
                       <Input
                         id={`row-${piece.id}`}
                         type="number"
@@ -525,7 +539,7 @@ export default function JigsawQuestion({
                         })}
                         className="h-7 w-16 text-xs"
                       />
-                      <Label htmlFor={`col-${piece.id}`} className="text-xs">Column:</Label>
+                      <Label htmlFor={`col-${piece.id}`} className="text-xs">{t('quiz.editor.fillGaps.labels.column', { lng: quizLanguage })}:</Label>
                       <Input
                         id={`col-${piece.id}`}
                         type="number"
@@ -555,17 +569,19 @@ export default function JigsawQuestion({
           </div>
         </div>
 
-        {/* Interactive Code Preview */}
         <div className="border border-slate-200 rounded-lg p-4 bg-slate-50 mt-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-sm font-medium">Complete Code Preview</h3>
+            <h3 className="text-sm font-medium">{t('quiz.editor.fillGaps.labels.completeCodePreview', { lng: quizLanguage })}</h3>
             <div className="flex space-x-2">
               <Button 
                 variant="outline"
                 size="sm"
                 onClick={() => setPreviewActive(!previewActive)}
               >
-                {previewActive ? 'Hide' : 'Show'} Individual Previews
+                {previewActive 
+                  ? t('quiz.editor.fillGaps.buttons.hideIndividualPreviews', { lng: quizLanguage })
+                  : t('quiz.editor.fillGaps.buttons.showIndividualPreviews', { lng: quizLanguage })
+                }
               </Button>
               <Button
                 variant="outline"
@@ -573,7 +589,10 @@ export default function JigsawQuestion({
                 onClick={() => setShowCompiledCode(!showCompiledCode)}
                 className="flex items-center"
               >
-                {showCompiledCode ? 'Hide' : 'Show'} Complete Code
+                {showCompiledCode 
+                  ? t('quiz.editor.fillGaps.buttons.hideCompleteCode', { lng: quizLanguage })
+                  : t('quiz.editor.fillGaps.buttons.showCompleteCode', { lng: quizLanguage })
+                }
               </Button>
             </div>
           </div>
@@ -582,10 +601,10 @@ export default function JigsawQuestion({
             <div className="mt-4">
               <div className="bg-slate-100 p-3 rounded-lg mb-3">
                 <p className="text-sm text-slate-600 mb-1">
-                  This is how the complete code will look when all pieces are arranged correctly:
+                  {t('quiz.editor.fillGaps.messages.completeCodeDescription', { lng: quizLanguage })}
                 </p>
                 <p className="text-xs text-slate-500 italic">
-                  Note: Code is assembled by reading the grid row by row, column by column.
+                  {t('quiz.editor.fillGaps.messages.codeAssemblyNote', { lng: quizLanguage })}
                 </p>
               </div>
               <div className="border border-slate-200 rounded overflow-hidden bg-white">

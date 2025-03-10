@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronUp, ChevronDown, Trash2, Eye, EyeOff, Lightbulb, Code } from 'lucide-react';
 import { SyntaxHighlighterWrapper } from '@/lib/syntaxHighlighter';
+import { useTranslation } from 'react-i18next';
+import { useQuiz } from '@/context/QuizContext';
 
 interface FillWholeQuestionProps {
   question: Question;
@@ -23,6 +25,8 @@ export default function FillWholeQuestion({
   onMoveUp,
   onMoveDown
 }: FillWholeQuestionProps) {
+  const { t } = useTranslation();
+  const { quizLanguage } = useQuiz();
   const [showSolution, setShowSolution] = useState(false);
   const [showFullPreview, setShowFullPreview] = useState(false);
 
@@ -102,18 +106,33 @@ export default function FillWholeQuestion({
               value={question.title} 
               onChange={handleTitleChange}
               className="bg-transparent border-none h-auto p-0 text-lg font-medium shadow-none focus-visible:ring-0"
-              placeholder="Enter question title"
+              placeholder={t('quiz.editor.completeCodeBlock.placeholders.questionTitle', { lng: quizLanguage })}
             />
           </CardTitle>
         </div>
         <div className="flex space-x-2">
-          <Button variant="ghost" size="icon" onClick={onMoveUp} title="Move up">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onMoveUp} 
+            title={t('quiz.editor.completeCodeBlock.buttons.moveUp', { lng: quizLanguage })}
+          >
             <ChevronUp className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onMoveDown} title="Move down">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onMoveDown} 
+            title={t('quiz.editor.completeCodeBlock.buttons.moveDown', { lng: quizLanguage })}
+          >
             <ChevronDown className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onDelete} title="Delete question">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onDelete} 
+            title={t('quiz.editor.completeCodeBlock.buttons.delete', { lng: quizLanguage })}
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -122,7 +141,9 @@ export default function FillWholeQuestion({
       <CardContent className="pt-6 space-y-6">
         {/* Language Selection */}
         <div className="flex items-center">
-          <Label htmlFor="language" className="mr-3">Programming Language:</Label>
+          <Label htmlFor="language" className="mr-3">
+            {t('quiz.editor.completeCodeBlock.labels.programmingLanguage', { lng: quizLanguage })}
+          </Label>
           <select
             id="language"
             value={question.language}
@@ -145,13 +166,15 @@ export default function FillWholeQuestion({
         {/* Code Sections */}
         <div className="space-y-4">
           <div>
-            <Label htmlFor="codePrefix" className="mb-2 block">Code Before (Provided to Student)</Label>
+            <Label htmlFor="codePrefix" className="mb-2 block">
+              {t('quiz.editor.completeCodeBlock.labels.codeBefore', { lng: quizLanguage })}
+            </Label>
             <Textarea
               id="codePrefix"
               value={question.codePrefix || ''}
               onChange={handleCodePrefixChange}
               className="font-mono text-sm h-24"
-              placeholder="Code that comes before the part the student needs to fill in"
+              placeholder={t('quiz.editor.completeCodeBlock.placeholders.codeBefore', { lng: quizLanguage })}
             />
           </div>
           
@@ -159,7 +182,7 @@ export default function FillWholeQuestion({
             <div className="flex items-center justify-between mb-2">
               <Label htmlFor="solutionCode" className="flex items-center">
                 <Code className="h-4 w-4 mr-2" />
-                Solution Code (Student Will Write)
+                {t('quiz.editor.completeCodeBlock.labels.solutionCode', { lng: quizLanguage })}
               </Label>
               <Button 
                 variant="ghost" 
@@ -168,7 +191,10 @@ export default function FillWholeQuestion({
                 className="text-xs"
               >
                 {showSolution ? <EyeOff className="h-3 w-3 mr-1" /> : <Eye className="h-3 w-3 mr-1" />}
-                {showSolution ? 'Hide Solution' : 'Show Solution'}
+                {showSolution 
+                  ? t('quiz.editor.completeCodeBlock.buttons.hidePreview', { lng: quizLanguage })
+                  : t('quiz.editor.completeCodeBlock.buttons.showPreview', { lng: quizLanguage })
+                }
               </Button>
             </div>
             <Textarea
@@ -176,25 +202,29 @@ export default function FillWholeQuestion({
               value={question.solutionCode || ''}
               onChange={handleSolutionCodeChange}
               className="font-mono text-sm h-28 bg-emerald-50"
-              placeholder="The expected solution code that students should write"
+              placeholder={t('quiz.editor.completeCodeBlock.placeholders.solutionCode', { lng: quizLanguage })}
             />
           </div>
 
           <div>
-            <Label htmlFor="codeSuffix" className="mb-2 block">Code After (Provided to Student)</Label>
+            <Label htmlFor="codeSuffix" className="mb-2 block">
+              {t('quiz.editor.completeCodeBlock.labels.codeAfter', { lng: quizLanguage })}
+            </Label>
             <Textarea
               id="codeSuffix"
               value={question.codeSuffix || ''}
               onChange={handleCodeSuffixChange}
               className="font-mono text-sm h-24"
-              placeholder="Code that comes after the part the student needs to fill in"
+              placeholder={t('quiz.editor.completeCodeBlock.placeholders.codeAfter', { lng: quizLanguage })}
             />
           </div>
         </div>
 
         {/* Question Settings */}
         <div className="space-y-4 border border-slate-200 p-4 rounded-lg bg-slate-50">
-          <h3 className="text-sm font-medium">Question Settings</h3>
+          <h3 className="text-sm font-medium">
+            {t('quiz.editor.completeCodeBlock.labels.questionSettings', { lng: quizLanguage })}
+          </h3>
           
           <div className="flex items-center space-x-2">
             <input 
@@ -208,36 +238,32 @@ export default function FillWholeQuestion({
               className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
             />
             <Label htmlFor="hideSolution" className="text-sm cursor-pointer">
-              Hide "Show Solution" button for students
+              {t('quiz.editor.completeCodeBlock.labels.hideSolutionButton', { lng: quizLanguage })}
             </Label>
           </div>
-          
-          <p className="text-xs text-slate-500 ml-6">
-            When enabled, students won't be able to view the solution in the quiz.
-            This is useful for assessments where you don't want students to see the correct answer.
-          </p>
         </div>
         
         {/* Hint */}
         <div className="space-y-2 bg-amber-50 p-4 rounded-lg border border-amber-200">
           <Label htmlFor="hintComment" className="flex items-center text-amber-800">
             <Lightbulb className="h-4 w-4 mr-2 text-amber-600" />
-            Hint Comment (Optional)
+            {t('quiz.editor.completeCodeBlock.labels.hintComment', { lng: quizLanguage })}
           </Label>
           <Textarea
             id="hintComment"
             value={question.hintComment || ''}
             onChange={handleHintCommentChange}
             className="text-sm border-amber-200"
-            placeholder="Provide a hint that will help students solve the problem"
+            placeholder={t('quiz.editor.completeCodeBlock.placeholders.hintComment', { lng: quizLanguage })}
           />
-          <p className="text-xs text-amber-600">This hint will be shown to students if they're stuck.</p>
         </div>
 
         {/* Full Code Preview */}
         <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-sm font-medium">Complete Code Preview</h3>
+            <h3 className="text-sm font-medium">
+              {t('quiz.editor.completeCodeBlock.labels.completeCodePreview', { lng: quizLanguage })}
+            </h3>
             <Button
               variant="outline"
               size="sm"
@@ -245,7 +271,10 @@ export default function FillWholeQuestion({
               className="flex items-center"
             >
               {showFullPreview ? <EyeOff className="h-3.5 w-3.5 mr-1" /> : <Eye className="h-3.5 w-3.5 mr-1" />}
-              {showFullPreview ? 'Hide' : 'Show'} Preview
+              {showFullPreview 
+                ? t('quiz.editor.completeCodeBlock.buttons.hidePreview', { lng: quizLanguage })
+                : t('quiz.editor.completeCodeBlock.buttons.showPreview', { lng: quizLanguage })
+              }
             </Button>
           </div>
           
@@ -254,8 +283,8 @@ export default function FillWholeQuestion({
               <div className="bg-slate-100 p-3 rounded-lg mb-3">
                 <p className="text-sm text-slate-600">
                   {showSolution 
-                    ? "This is how the complete code will look with the solution filled in."
-                    : "This is how the code will appear to the student initially."}
+                    ? t('quiz.editor.completeCodeBlock.messages.previewWithSolution', { lng: quizLanguage })
+                    : t('quiz.editor.completeCodeBlock.messages.previewInitial', { lng: quizLanguage })}
                 </p>
               </div>
               <div className="border border-slate-200 rounded overflow-hidden bg-white">

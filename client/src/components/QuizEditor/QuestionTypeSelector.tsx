@@ -10,47 +10,50 @@ import {
   TextQuote,
   AlertTriangle
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useQuiz } from '@/context/QuizContext';
+import { useEffect } from 'react';
 
 const questionTypes = [
   { 
     type: 'code-order' as QuestionType, 
     icon: MoveVertical, 
-    label: 'Order Code Blocks' 
+    translationKey: 'quiz.types.Order Code Blocks'
   },
   { 
     type: 'jigsaw' as QuestionType, 
     icon: Code, // Using Code icon for now until we find a better one
-    label: '2D Jigsaw Puzzle' 
+    translationKey: 'quiz.types.2D Jigsaw Puzzle'
   },
   { 
     type: 'fill-gaps' as QuestionType, 
     icon: Code, 
-    label: 'Fill in the Gaps' 
+    translationKey: 'quiz.types.Fill in the Gaps'
   },
   { 
     type: 'fill-whole' as QuestionType, 
     icon: FileCode, 
-    label: 'Complete Code Block' 
+    translationKey: 'quiz.types.Complete Code Block'
   },
   { 
     type: 'multiple-choice' as QuestionType, 
     icon: CheckSquare, 
-    label: 'Multiple Choice' 
+    translationKey: 'quiz.types.Multiple Choice'
   },
   { 
     type: 'single-choice' as QuestionType, 
     icon: Circle, 
-    label: 'Single Choice' 
+    translationKey: 'quiz.types.Single Choice'
   },
   { 
     type: 'text' as QuestionType, 
     icon: TextQuote, 
-    label: 'Text Question' 
+    translationKey: 'quiz.types.Text Question'
   },
   {
     type: 'find-code-errors' as QuestionType,
     icon: AlertTriangle,
-    label: 'Find and Fix Code Errors'
+    translationKey: 'quiz.types.Find and Fix Code Errors'
   }
 ];
 
@@ -63,9 +66,31 @@ export default function QuestionTypeSelector({
   selectedType,
   onSelectType
 }: QuestionTypeSelectorProps) {
+  const { t, i18n } = useTranslation();
+  const { quizLanguage } = useQuiz();
+
+  // Force language update when quiz language changes
+  useEffect(() => {
+    console.log('QuestionTypeSelector: Setting language to:', quizLanguage);
+    i18n.changeLanguage(quizLanguage).then(() => {
+      console.log('QuestionTypeSelector: Language changed successfully');
+    }).catch((error) => {
+      console.error('QuestionTypeSelector: Failed to change language:', error);
+    });
+  }, [quizLanguage, i18n]);
+
+  const translatedQuestionTypes = questionTypes.map((type) => {
+    const label = t(type.translationKey, { lng: quizLanguage });
+    console.log(`Translation for ${type.translationKey}:`, label);
+    return {
+      ...type,
+      label
+    };
+  });
+
   return (
     <ul className="space-y-2 font-medium text-sm">
-      {questionTypes.map((type) => {
+      {translatedQuestionTypes.map((type) => {
         const IconComponent = type.icon;
         return (
           <li key={type.type} className="rounded-md transition cursor-pointer">

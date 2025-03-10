@@ -8,17 +8,23 @@ import JigsawQuestion from '@/components/QuestionTypes/JigsawQuestion';
 import FillWholeQuestion from '@/components/QuestionTypes/FillWholeQuestion';
 import TextQuestion from '@/components/QuestionTypes/TextQuestion';
 import FindCodeErrorsQuestion from '@/components/QuestionTypes/FindCodeErrorsQuestion';
+import { useTranslation } from 'react-i18next';
 
 export default function QuestionList() {
-  const { questions, updateQuestion, deleteQuestion, moveQuestionUp, moveQuestionDown } = useQuiz();
+  const { questions, updateQuestion, deleteQuestion, moveQuestionUp, moveQuestionDown, quizLanguage } = useQuiz();
+  const { t } = useTranslation();
 
   console.log('Current questions in QuestionList:', questions);
 
   if (questions.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No questions added yet</h3>
-        <p className="text-gray-500">Select a question type from the sidebar and click "Add Question"</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          {t('quiz.editor.noQuestions', { lng: quizLanguage })}
+        </h3>
+        <p className="text-gray-500">
+          {t('quiz.editor.addQuestionPrompt', { lng: quizLanguage })}
+        </p>
       </div>
     );
   }

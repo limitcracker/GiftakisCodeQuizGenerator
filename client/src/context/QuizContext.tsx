@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Quiz, Question, QuestionType, QuizStyle } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 // Helper to generate a unique ID
 const generateId = (): string => `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -24,6 +25,9 @@ const createDefaultQuiz = (): Quiz => ({
   timeLimit: null, // No time limit by default
   hideFooter: false, // Show footer by default
   style: defaultQuizStyle, // Default styling
+  language: 'el', // Set default language to Greek
+  stepByStep: false,
+  requireCorrectAnswer: false
 });
 
 // Context type
@@ -54,6 +58,9 @@ type QuizContextType = {
   setStepByStep: (enabled: boolean) => void;
   requireCorrectAnswer: boolean;
   setRequireCorrectAnswer: (required: boolean) => void;
+  quizLanguage: string;
+  setQuizLanguage: (language: string) => void;
+  exportQuiz: () => void;
 };
 
 // Create the context
@@ -61,32 +68,44 @@ const QuizContext = createContext<QuizContextType | undefined>(undefined);
 
 // Provider component
 export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  // Quiz state
+  const { t, i18n } = useTranslation();
   const [quiz, setQuiz] = useState<Quiz>(createDefaultQuiz());
   const [selectedQuestionType, setSelectedQuestionType] = useState<QuestionType | null>('code-order');
+  const [quizLanguage, setQuizLanguage] = useState<string>('el');
+
+  // Update quiz language
+  useEffect(() => {
+    console.log('QuizContext: Changing language to:', quizLanguage);
+    i18n.changeLanguage(quizLanguage).then(() => {
+      console.log('QuizContext: Language changed successfully');
+    }).catch((error) => {
+      console.error('QuizContext: Failed to change language:', error);
+    });
+
+    setQuiz(prev => ({
+      ...prev,
+      language: quizLanguage,
+      questions: prev.questions.map(q => ({
+        ...q,
+        language: quizLanguage,
+        title: getDefaultTitle(q.type) // Update existing question titles
+      }))
+    }));
+  }, [quizLanguage, i18n]);
 
   // Helper function to generate default titles based on question type
   const getDefaultTitle = (type: QuestionType): string => {
-    switch (type) {
-      case 'code-order':
-        return 'Put the following code blocks in the correct order to create a function that calculates the factorial of a number:';
-      case 'multiple-choice':
-        return 'Which of the following are valid ways to declare a variable in JavaScript? (Select all that apply)';
-      case 'single-choice':
-        return 'What is the correct way to declare a constant in JavaScript?';
-      case 'fill-gaps':
-        return 'Complete the JavaScript function that filters an array to return only even numbers:';
-      case 'jigsaw':
-        return 'Arrange the code blocks to form a valid function:';
-      case 'fill-whole':
-        return 'Implement the missing code section to complete this function:';
-      case 'text':
-        return 'What programming language is primarily used for front-end web development?';
-      case 'find-code-errors':
-        return 'Find and fix the errors in the following code:';
-      default:
-        return 'New Question';
-    }
+    const titles = {
+      'code-order': t('quiz.questions.codeOrder.title', 'Put the following code blocks in the correct order to create a function that calculates the factorial of a number:', { lng: quizLanguage }),
+      'multiple-choice': t('quiz.questions.multipleChoice.title', 'Which of the following are valid ways to declare a variable in JavaScript? (Select all that apply)', { lng: quizLanguage }),
+      'single-choice': t('quiz.questions.singleChoice.title', 'What is the correct way to declare a constant in JavaScript?', { lng: quizLanguage }),
+      'fill-gaps': t('quiz.questions.fillGaps.title', 'Complete the JavaScript function that filters an array to return only even numbers:', { lng: quizLanguage }),
+      'jigsaw': t('quiz.questions.jigsaw.title', 'Arrange the code blocks to form a valid function:', { lng: quizLanguage }),
+      'fill-whole': t('quiz.questions.fillWhole.title', 'Implement the missing code section to complete this function:', { lng: quizLanguage }),
+      'text': t('quiz.questions.text.title', 'What programming language is primarily used for front-end web development?', { lng: quizLanguage }),
+      'find-code-errors': t('quiz.questions.findErrors.title', 'Find and fix the errors in the following code:', { lng: quizLanguage })
+    };
+    return titles[type] || t('quiz.questions.default.title', 'New Question', { lng: quizLanguage });
   };
 
   // Add a new question
@@ -94,12 +113,14 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     if (!selectedQuestionType) return;
     
     console.log('Adding new question with type:', selectedQuestionType);
+    console.log('Current quiz language:', quizLanguage);
     
     const newQuestion: Question = {
       id: generateId(),
       type: selectedQuestionType,
       title: getDefaultTitle(selectedQuestionType),
       order: quiz.questions.length + 1,
+      language: quizLanguage,
       // Type-specific properties
       ...(selectedQuestionType === 'code-order' && {
         codeBlocks: [
@@ -188,14 +209,11 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       })
     };
     
-    setQuiz(prevQuiz => {
-      const updatedQuiz = {
-        ...prevQuiz,
-        questions: [...prevQuiz.questions, newQuestion]
-      };
-      console.log('Updated quiz with new question:', updatedQuiz);
-      return updatedQuiz;
-    });
+    setQuiz(prev => ({
+      ...prev,
+      questions: [...prev.questions, newQuestion],
+      language: quizLanguage
+    }));
   };
   
   // Update an existing question
@@ -310,6 +328,19 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     setQuiz(createDefaultQuiz());
   };
   
+  // Export quiz
+  const exportQuiz = () => {
+    console.log('Exporting quiz with language:', quizLanguage);
+    return {
+      ...quiz,
+      language: quizLanguage,
+      questions: quiz.questions.map(q => ({
+        ...q,
+        language: quizLanguage
+      }))
+    };
+  };
+  
   // Expose the context
   const contextValue: QuizContextType = {
     quiz,
@@ -337,7 +368,10 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     stepByStep: quiz.stepByStep || false,
     setStepByStep: (enabled) => setQuiz(prev => ({ ...prev, stepByStep: enabled })),
     requireCorrectAnswer: quiz.requireCorrectAnswer || false,
-    setRequireCorrectAnswer: (required) => setQuiz(prev => ({ ...prev, requireCorrectAnswer: required }))
+    setRequireCorrectAnswer: (required) => setQuiz(prev => ({ ...prev, requireCorrectAnswer: required })),
+    quizLanguage,
+    setQuizLanguage,
+    exportQuiz
   };
   
   return (

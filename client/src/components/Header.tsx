@@ -1,5 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Eye, Code } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useQuiz } from '@/context/QuizContext';
 
 interface HeaderProps {
   onPreview: () => void;
@@ -7,6 +9,9 @@ interface HeaderProps {
 }
 
 export default function Header({ onPreview, onExport }: HeaderProps) {
+  const { t } = useTranslation();
+  const { quizLanguage } = useQuiz();
+
   return (
     <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
@@ -20,11 +25,11 @@ export default function Header({ onPreview, onExport }: HeaderProps) {
             onClick={onPreview}
             className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200">
             <Eye className="h-4 w-4 mr-2" />
-            Preview
+            {t('quiz.preview.preview', { lng: quizLanguage })}
           </Button>
           <Button onClick={onExport}>
             <Code className="h-4 w-4 mr-2" />
-            Export HTML
+            {t('quiz.preview.exportHtml', { lng: quizLanguage })}
           </Button>
         </div>
       </div>

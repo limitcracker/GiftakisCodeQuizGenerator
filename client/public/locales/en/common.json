@@ -1,0 +1,160 @@
+{
+  "app": {
+    "title": "Quiz Creator",
+    "description": "Create and manage your quizzes"
+  },
+  "nav": {
+    "home": "Home",
+    "quizzes": "Quizzes",
+    "create": "Create Quiz",
+    "settings": "Settings"
+  },
+  "quiz": {
+    "create": {
+      "title": "Create New Quiz",
+      "name": "Quiz Name",
+      "description": "Quiz Description",
+      "submit": "Create Quiz",
+      "language": "Quiz Language",
+      "selectLanguage": "Select quiz language",
+      "languageDescription": "Choose the language in which the quiz content will be presented to students.",
+      "hideFooter": "Hide \"Powered by\" footer",
+      "stepByStep": "Show questions one by one",
+      "requireCorrect": "Require correct answers to proceed",
+      "defaultTitle": "JavaScript Quiz",
+      "defaultDescription": "Test your JavaScript knowledge"
+    },
+    "editor": {
+      "question": "Question",
+      "codeExample": "Code Example (Optional)",
+      "answerOptions": "Answer Options",
+      "addOption": "Add Option",
+      "feedback": "Feedback (optional)",
+      "feedbackPlaceholder": "Feedback for this option...",
+      "questionSettings": "Question Settings",
+      "hideCorrectAnswers": "Hide correct answers from students",
+      "hideCorrectAnswersDescription": "When enabled, students won't see which answers were correct when they submit their responses.",
+      "programmingLanguage": "Programming Language",
+      "settings": "Settings",
+      "sampleAnswer": "Sample Answer",
+      "hintAndExplanation": "Hint & Explanation",
+      "answerFormat": "Answer Format",
+      "shortAnswer": "Short Answer (Single line)",
+      "longAnswer": "Long Answer (Multi-line)",
+      "formatOptions": "Format Options",
+      "enableMarkdown": "Enable Markdown formatting in answer",
+      "enableCodeBlocks": "Support code blocks in answer",
+      "jigsawPieces": "Jigsaw Pieces (will be shuffled for students)",
+      "addPiece": "Add Piece",
+      "piece": "Piece",
+      "pieceContent": "Piece Content",
+      "correctRow": "Correct Row",
+      "correctColumn": "Correct Column",
+      "gridSize": "Grid Size",
+      "rows": "Rows",
+      "columns": "Columns",
+      "jigsawDescription": "Description (instructions for the student)",
+      "jigsawDescriptionPlaceholder": "Enter instructions for the student",
+      "explanation": "Explanation",
+      "explanationPlaceholder": "Provide a detailed explanation of the answer",
+      "hint": "Hint",
+      "hintPlaceholder": "Provide a hint that can be shown to help students",
+      "sampleAnswerPlaceholder": "Enter a sample answer that will be shown when the student clicks 'Show Solution'"
+    },
+    "questions": {
+      "codeOrder": {
+        "title": "Put the following code blocks in the correct order to create a function that calculates the factorial of a number:"
+      },
+      "multipleChoice": {
+        "title": "Which of the following are valid ways to declare a variable in JavaScript? (Select all that apply)"
+      },
+      "singleChoice": {
+        "title": "What is the correct way to declare a constant in JavaScript?"
+      },
+      "fillGaps": {
+        "title": "Complete the JavaScript function that filters an array to return only even numbers:"
+      },
+      "jigsaw": {
+        "title": "Arrange the code blocks to form a valid function:"
+      },
+      "fillWhole": {
+        "title": "Implement the missing code section to complete this function:"
+      },
+      "text": {
+        "title": "What programming language is primarily used for front-end web development?"
+      },
+      "findErrors": {
+        "title": "Find and fix the errors in the following code:"
+      },
+      "default": {
+        "title": "New Question"
+      }
+    },
+    "types": {
+      "multiple": "Multiple Choice",
+      "text": "Text Answer",
+      "code": "Code Question",
+      "Order Code Blocks": "Order Code Blocks",
+      "2D Jigsaw Puzzle": "2D Code Jigsaw",
+      "Fill in the Gaps": "Fill in the Gaps",
+      "Complete Code Block": "Complete Code Block",
+      "Multiple Choice": "Multiple Choice",
+      "Single Choice": "Single Choice",
+      "Text Question": "Text Question",
+      "Find and Fix Code Errors": "Find and Fix Code Errors"
+    },
+    "preview": {
+      "title": "Quiz Preview",
+      "start": "Start Quiz",
+      "next": "Next Question",
+      "previous": "Previous Question",
+      "submit": "Submit Answer",
+      "finish": "Finish Quiz",
+      "checkAnswer": "Check Answer",
+      "showSolution": "Show Solution",
+      "hideSolution": "Hide Solution",
+      "showHint": "Show Hint",
+      "hideHint": "Hide Hint",
+      "correct": "Correct!",
+      "incorrect": "Incorrect. Try again.",
+      "dropHere": "[ Drop Here ]",
+      "runCode": "Run Code",
+      "running": "Running...",
+      "writeAnswer": "Write your answer here...",
+      "preview": "Preview",
+      "solution": "Solution",
+      "hint": "Hint",
+      "questionNumber": "Question {{number}} of {{total}}",
+      "questionLabel": "Question {{number}}:",
+      "noDescription": "No description provided",
+      "untitledQuiz": "Untitled Quiz",
+      "quizTimer": "Quiz Timer",
+      "close": "Close Preview",
+      "yourAnswer": "Your Answer:",
+      "sampleSolution": "Sample Solution:",
+      "codeWithErrors": "Code with Errors:",
+      "yourCorrectedCode": "Your Corrected Code:",
+      "errorsToFix": "Errors to Fix:",
+      "correctSolution": "Correct Solution:",
+      "availableSnippets": "Available Snippets:",
+      "output": "Output:",
+      "markdownSupported": "(Markdown Supported)"
+    }
+  },
+  "settings": {
+    "language": "Language",
+    "languageDescription": "Select your preferred language for the application interface.",
+    "theme": "Theme",
+    "save": "Save Changes"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "close": "Close"
+  }
+} 

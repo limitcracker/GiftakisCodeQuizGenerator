@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import QuestionTimerSettings from '../QuizEditor/QuestionTimerSettings';
 import { Switch } from '@/components/ui/switch';
+import { useTranslation } from 'react-i18next';
+import { useQuiz } from '@/context/QuizContext';
 
 interface TextQuestionProps {
   question: Question;
@@ -25,6 +27,8 @@ export default function TextQuestion({
   onMoveUp,
   onMoveDown
 }: TextQuestionProps) {
+  const { t } = useTranslation();
+  const { quizLanguage } = useQuiz();
   const [title, setTitle] = useState(question.title);
   const [explanation, setExplanation] = useState(question.explanation || '');
   const [textAnswer, setTextAnswer] = useState(question.textAnswer || '');
@@ -76,19 +80,42 @@ export default function TextQuestion({
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center">
             <span className="text-sm font-medium mr-2">
-              Text Question
+              {t('quiz.types.Text Question', { lng: quizLanguage })}
             </span>
           </div>
           <div className="flex space-x-2">
-            <Button variant="outline" size="sm" onClick={onMoveUp}>Move Up</Button>
-            <Button variant="outline" size="sm" onClick={onMoveDown}>Move Down</Button>
-            <Button variant="destructive" size="sm" onClick={onDelete}>Delete</Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onMoveUp}
+              title={t('quiz.editor.textQuestion.buttons.moveUp', { lng: quizLanguage })}
+            >
+              {t('quiz.editor.textQuestion.buttons.moveUp', { lng: quizLanguage })}
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onMoveDown}
+              title={t('quiz.editor.textQuestion.buttons.moveDown', { lng: quizLanguage })}
+            >
+              {t('quiz.editor.textQuestion.buttons.moveDown', { lng: quizLanguage })}
+            </Button>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={onDelete}
+              title={t('quiz.editor.textQuestion.buttons.delete', { lng: quizLanguage })}
+            >
+              {t('quiz.editor.textQuestion.buttons.delete', { lng: quizLanguage })}
+            </Button>
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="question-title">Question Title</Label>
+          <Label htmlFor="question-title">
+            {t('quiz.editor.question', { lng: quizLanguage })}
+          </Label>
           <Textarea 
             id="question-title" 
             value={title} 
@@ -100,20 +127,22 @@ export default function TextQuestion({
 
         <Tabs defaultValue="settings" className="w-full">
           <TabsList className="grid grid-cols-3">
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-            <TabsTrigger value="sample-answer">Sample Answer</TabsTrigger>
-            <TabsTrigger value="help">Hint & Explanation</TabsTrigger>
+            <TabsTrigger value="settings">{t('quiz.editor.settings', { lng: quizLanguage })}</TabsTrigger>
+            <TabsTrigger value="sample-answer">{t('quiz.editor.sampleAnswer', { lng: quizLanguage })}</TabsTrigger>
+            <TabsTrigger value="help">{t('quiz.editor.hintAndExplanation', { lng: quizLanguage })}</TabsTrigger>
           </TabsList>
           
           <TabsContent value="settings" className="space-y-4">
             <div className="space-y-4">
               <QuestionTimerSettings 
-                questionId={question.id} 
-                currentTimeLimit={question.timeLimit} 
+                timeLimit={question.timeLimit}
+                onChange={(timeLimit) => onUpdate({ ...question, timeLimit })}
               />
               
               <div className="space-y-2">
-                <Label className="font-semibold">Answer Format</Label>
+                <Label className="font-semibold">
+                  {t('quiz.editor.answerFormat', { lng: quizLanguage })}
+                </Label>
                 <RadioGroup 
                   defaultValue={isLongFormat ? 'long' : 'short'} 
                   onValueChange={handleFormatChange}
@@ -121,50 +150,23 @@ export default function TextQuestion({
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="short" id="format-short" />
-                    <Label htmlFor="format-short">Short Answer (Single line)</Label>
+                    <Label htmlFor="format-short">
+                      {t('quiz.editor.shortAnswer', { lng: quizLanguage })}
+                    </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="long" id="format-long" />
-                    <Label htmlFor="format-long">Long Answer (Multi-line)</Label>
+                    <Label htmlFor="format-long">
+                      {t('quiz.editor.longAnswer', { lng: quizLanguage })}
+                    </Label>
                   </div>
                 </RadioGroup>
               </div>
               
               <div className="space-y-2">
-                <Label className="font-semibold">Character Limits</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="min-length">Minimum Length</Label>
-                    <Input 
-                      id="min-length" 
-                      type="number" 
-                      min="0"
-                      value={minLength} 
-                      onChange={(e) => setMinLength(parseInt(e.target.value) || 0)}
-                      onBlur={handleUpdate}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="max-length">Maximum Length</Label>
-                    <Input 
-                      id="max-length" 
-                      type="number" 
-                      min="0"
-                      value={maxLength} 
-                      onChange={(e) => setMaxLength(parseInt(e.target.value) || 0)}
-                      onBlur={handleUpdate}
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {isLongFormat 
-                    ? "For long answers, recommended max length is between 500-2000 characters." 
-                    : "For short answers, recommended max length is between 50-100 characters."}
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label className="font-semibold">Format Options</Label>
+                <Label className="font-semibold">
+                  {t('quiz.editor.formatOptions', { lng: quizLanguage })}
+                </Label>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <Switch 
@@ -175,7 +177,9 @@ export default function TextQuestion({
                         handleUpdate();
                       }}
                     />
-                    <Label htmlFor="is-markdown">Enable Markdown formatting in answer</Label>
+                    <Label htmlFor="is-markdown">
+                      {t('quiz.editor.enableMarkdown', { lng: quizLanguage })}
+                    </Label>
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -187,7 +191,9 @@ export default function TextQuestion({
                         handleUpdate();
                       }}
                     />
-                    <Label htmlFor="support-code">Support code blocks in answer</Label>
+                    <Label htmlFor="support-code">
+                      {t('quiz.editor.enableCodeBlocks', { lng: quizLanguage })}
+                    </Label>
                   </div>
                 </div>
               </div>
@@ -196,14 +202,16 @@ export default function TextQuestion({
           
           <TabsContent value="sample-answer" className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="text-answer">Sample Answer</Label>
+              <Label htmlFor="text-answer">
+                {t('quiz.editor.sampleAnswer', { lng: quizLanguage })}
+              </Label>
               <Textarea
                 id="text-answer"
                 value={textAnswer}
                 onChange={(e) => setTextAnswer(e.target.value)}
                 onBlur={handleUpdate}
                 className={isLongFormat ? "min-h-[200px] font-mono" : "min-h-[80px] font-mono"}
-                placeholder="Enter a sample answer that will be shown when the student clicks 'Show Solution'"
+                placeholder={t('quiz.editor.sampleAnswerPlaceholder', { lng: quizLanguage })}
               />
               <p className="text-sm text-muted-foreground">
                 {isMarkdown && "Markdown is enabled. Use **bold**, *italic*, and ```code blocks``` for formatting."}
@@ -213,26 +221,30 @@ export default function TextQuestion({
           
           <TabsContent value="help" className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="hint-text">Hint</Label>
+              <Label htmlFor="hint-text">
+                {t('quiz.editor.hint', { lng: quizLanguage })}
+              </Label>
               <Textarea
                 id="hint-text"
                 value={hintComment}
                 onChange={(e) => setHintComment(e.target.value)}
                 onBlur={handleUpdate}
                 className="min-h-[100px]"
-                placeholder="Provide a hint that can be shown to help students"
+                placeholder={t('quiz.editor.hintPlaceholder', { lng: quizLanguage })}
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="explanation-text">Explanation</Label>
+              <Label htmlFor="explanation-text">
+                {t('quiz.editor.explanation', { lng: quizLanguage })}
+              </Label>
               <Textarea
                 id="explanation-text"
                 value={explanation}
                 onChange={(e) => setExplanation(e.target.value)}
                 onBlur={handleUpdate}
                 className="min-h-[100px]"
-                placeholder="Provide a detailed explanation of the answer"
+                placeholder={t('quiz.editor.explanationPlaceholder', { lng: quizLanguage })}
               />
             </div>
           </TabsContent>

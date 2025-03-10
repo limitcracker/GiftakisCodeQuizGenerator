@@ -9,6 +9,7 @@ import PreviewModal from '@/components/Modals/PreviewModal';
 import { useQuiz } from '@/context/QuizContext';
 import { Button } from '@/components/ui/button';
 import { PlusIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const Home = () => {
   const [showExportModal, setShowExportModal] = useState(false);
@@ -21,8 +22,10 @@ const Home = () => {
     quizTitle, 
     setQuizTitle,
     quizDescription, 
-    setQuizDescription
+    setQuizDescription,
+    quizLanguage
   } = useQuiz();
+  const { t } = useTranslation();
 
   // Handler for the add question button
   const handleAddQuestion = () => {
@@ -64,7 +67,7 @@ const Home = () => {
                 className="w-full"
                 onClick={handleAddQuestion}>
                 <PlusIcon className="h-4 w-4 mr-2" />
-                Add Question
+                {t('quiz.preview.addQuestion', { lng: quizLanguage })}
               </Button>
             </div>
           </aside>
@@ -72,8 +75,11 @@ const Home = () => {
           <main className="lg:col-span-4 space-y-6">
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-4">
               <p className="text-yellow-800">
-                <strong>Debug info:</strong> Quiz has {quiz.questions.length} questions.
-                Current question type: {selectedQuestionType}
+                {t('quiz.preview.debugInfo', { 
+                  count: quiz.questions.length, 
+                  type: selectedQuestionType,
+                  lng: quizLanguage 
+                })}
               </p>
             </div>
             <QuestionList />

@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Clock, Timer } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function TimerSettings() {
-  const { quizTimeLimit, setQuizTimeLimit } = useQuiz();
+  const { quizTimeLimit, setQuizTimeLimit, quizLanguage } = useQuiz();
+  const { t } = useTranslation();
   
   // Convert minutes to seconds for display
   const displayMinutes = quizTimeLimit ? Math.floor(quizTimeLimit / 60) : '';
@@ -42,7 +44,7 @@ export default function TimerSettings() {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
           <Clock className="h-5 w-5" />
-          <span>Time Settings</span>
+          <span>{t('quiz.preview.timeSettings', { lng: quizLanguage })}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -50,7 +52,7 @@ export default function TimerSettings() {
           <div className="flex items-center justify-between">
             <Label htmlFor="enable-timer" className="flex items-center gap-2">
               <Timer className="h-4 w-4" />
-              <span>Enable Quiz Timer</span>
+              <span>{t('quiz.preview.enableQuizTimer', { lng: quizLanguage })}</span>
             </Label>
             <Switch 
               id="enable-timer" 
@@ -62,7 +64,7 @@ export default function TimerSettings() {
           {quizTimeLimit !== null && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="timer-minutes">Minutes</Label>
+                <Label htmlFor="timer-minutes">{t('quiz.editor.findAndFixErrors.labels.minutes', { lng: quizLanguage })}</Label>
                 <Input 
                   id="timer-minutes"
                   type="number"
@@ -73,7 +75,7 @@ export default function TimerSettings() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="timer-seconds">Seconds</Label>
+                <Label htmlFor="timer-seconds">{t('quiz.editor.findAndFixErrors.labels.seconds', { lng: quizLanguage })}</Label>
                 <Input 
                   id="timer-seconds"
                   type="number"
@@ -89,9 +91,9 @@ export default function TimerSettings() {
           
           <div className="text-sm text-muted-foreground">
             {quizTimeLimit === null ? (
-              <p>No time limit set for this quiz.</p>
+              <p>{t('quiz.preview.noTimeLimit', { lng: quizLanguage })}</p>
             ) : (
-              <p>Quiz time limit: {Math.floor(quizTimeLimit / 60)} minutes and {quizTimeLimit % 60} seconds.</p>
+              <p>{t('quiz.editor.findAndFixErrors.messages.timeLimit', { minutes: Math.floor(quizTimeLimit / 60), seconds: quizTimeLimit % 60, lng: quizLanguage })}</p>
             )}
           </div>
         </div>

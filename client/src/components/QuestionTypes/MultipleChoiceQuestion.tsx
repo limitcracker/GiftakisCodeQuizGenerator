@@ -9,6 +9,8 @@ import { PlusIcon, XIcon, EyeOffIcon } from 'lucide-react';
 import { CodeBlock } from '@/components/CodeBlock';
 import { Question, MultipleChoiceOption } from '@/types';
 import QuestionTimerSettings from '@/components/QuizEditor/QuestionTimerSettings';
+import { useTranslation } from 'react-i18next';
+import { useQuiz } from '@/context/QuizContext';
 
 interface MultipleChoiceQuestionProps {
   question: Question;
@@ -25,6 +27,8 @@ export default function MultipleChoiceQuestion({
   onMoveUp,
   onMoveDown
 }: MultipleChoiceQuestionProps) {
+  const { t } = useTranslation();
+  const { quizLanguage } = useQuiz();
   const [localTitle, setLocalTitle] = useState(question.title);
   const [localExplanation, setLocalExplanation] = useState(question.explanation || '');
   const [localCodeExample, setLocalCodeExample] = useState(question.codeExample || '');
@@ -67,7 +71,7 @@ export default function MultipleChoiceQuestion({
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">
-            Question {question.order} <span className="text-sm font-normal text-gray-500">(Multiple Choice)</span>
+            {t('quiz.editor.question', { lng: quizLanguage })} {question.order} <span className="text-sm font-normal text-gray-500">(Multiple Choice)</span>
           </h2>
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="icon" onClick={onMoveUp}>
@@ -84,7 +88,9 @@ export default function MultipleChoiceQuestion({
         
         <div className="space-y-4">
           <div>
-            <Label htmlFor={`question-title-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">Question</Label>
+            <Label htmlFor={`question-title-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+              {t('quiz.editor.question', { lng: quizLanguage })}
+            </Label>
             <Input
               id={`question-title-${question.id}`}
               value={localTitle}
@@ -94,7 +100,9 @@ export default function MultipleChoiceQuestion({
           </div>
           
           <div>
-            <Label htmlFor={`code-example-${question.id}`} className="block text-sm font-medium text-gray-700 mb-2">Code Example (Optional)</Label>
+            <Label htmlFor={`code-example-${question.id}`} className="block text-sm font-medium text-gray-700 mb-2">
+              {t('quiz.editor.codeExample', { lng: quizLanguage })}
+            </Label>
             <div className="relative">
               <Textarea
                 id={`code-example-${question.id}`}
@@ -113,13 +121,13 @@ export default function MultipleChoiceQuestion({
           
           <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="font-medium">Answer Options</h3>
+              <h3 className="font-medium">{t('quiz.editor.answerOptions', { lng: quizLanguage })}</h3>
               <Button 
                 variant="ghost" 
                 onClick={handleAddOption}
                 className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 text-sm h-8">
                 <PlusIcon className="w-4 h-4 mr-1" />
-                Add Option
+                {t('quiz.editor.addOption', { lng: quizLanguage })}
               </Button>
             </div>
             
@@ -151,12 +159,14 @@ export default function MultipleChoiceQuestion({
                   </div>
                 </div>
                 <div className="mt-2 ml-9">
-                  <Label htmlFor={`feedback-${option.id}`} className="block text-xs font-medium text-gray-500 mb-1">Feedback (optional)</Label>
+                  <Label htmlFor={`feedback-${option.id}`} className="block text-xs font-medium text-gray-500 mb-1">
+                    {t('quiz.editor.feedback', { lng: quizLanguage })}
+                  </Label>
                   <Input
                     id={`feedback-${option.id}`}
                     value={option.feedback}
                     onChange={(e) => handleOptionChange(option.id, 'feedback', e.target.value)}
-                    placeholder="Feedback for this option..."
+                    placeholder={t('quiz.editor.feedbackPlaceholder', { lng: quizLanguage })}
                     className="w-full px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -166,7 +176,7 @@ export default function MultipleChoiceQuestion({
           
           {/* Question Settings */}
           <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-2">
-            <h3 className="font-medium">Question Settings</h3>
+            <h3 className="font-medium">{t('quiz.editor.questionSettings', { lng: quizLanguage })}</h3>
             
             <div className="flex items-center space-x-2">
               <input 
@@ -181,13 +191,12 @@ export default function MultipleChoiceQuestion({
               />
               <Label htmlFor={`hideSolution-${question.id}`} className="text-sm cursor-pointer flex items-center">
                 <EyeOffIcon className="h-3 w-3 mr-1 text-gray-500" />
-                Hide correct answers from students
+                {t('quiz.editor.hideCorrectAnswers', { lng: quizLanguage })}
               </Label>
             </div>
             
             <p className="text-xs text-gray-500 ml-6">
-              When enabled, students won't see which answers were correct when they submit their responses.
-              This is useful for assessments where you don't want students to see the correct answer.
+              {t('quiz.editor.hideCorrectAnswersDescription', { lng: quizLanguage })}
             </p>
             
             {/* Question Timer Settings */}
@@ -198,12 +207,14 @@ export default function MultipleChoiceQuestion({
           </div>
           
           <div>
-            <Label htmlFor={`explanation-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">Explanation (Optional)</Label>
+            <Label htmlFor={`explanation-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+              {t('quiz.editor.explanation', { lng: quizLanguage })}
+            </Label>
             <Textarea
               id={`explanation-${question.id}`}
               value={localExplanation}
               onChange={(e) => setLocalExplanation(e.target.value)}
-              placeholder="Add explanation for correct answer..."
+              placeholder={t('quiz.editor.explanationPlaceholder', { lng: quizLanguage })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
               rows={2}
             />
@@ -213,7 +224,7 @@ export default function MultipleChoiceQuestion({
             <Button 
               onClick={handleSave}
               className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
-              Save Question
+              {t('quiz.editor.saveQuestion', { lng: quizLanguage })}
             </Button>
           </div>
         </div>

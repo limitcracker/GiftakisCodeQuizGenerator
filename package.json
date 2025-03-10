@@ -57,6 +57,9 @@
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "framer-motion": "^11.13.1",
+    "i18next": "^24.2.2",
+    "i18next-browser-languagedetector": "^8.0.4",
+    "i18next-http-backend": "^3.0.2",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.453.0",
     "memorystore": "^1.6.7",
@@ -66,6 +69,7 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.1",
+    "react-i18next": "^15.4.1",
     "react-icons": "^5.4.0",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^2.1.4",
@@ -104,8 +108,8 @@
     "vite": "^5.4.14"
   },
   "optionalDependencies": {
-    "bufferutil": "^4.0.8",
     "@rollup/rollup-linux-x64-gnu": "^4.9.0",
-    "@rollup/rollup-win32-x64-msvc": "^4.9.0"
+    "@rollup/rollup-win32-x64-msvc": "^4.9.0",
+    "bufferutil": "^4.0.8"
   }
 }

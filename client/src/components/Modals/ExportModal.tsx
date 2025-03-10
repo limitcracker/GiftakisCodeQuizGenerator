@@ -1,9 +1,12 @@
 import { useState, useRef } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, Copy, Check } from 'lucide-react';
 import { Quiz } from '@/types';
 import { generateHtml } from '@/lib/generateHtml';
 import { CodeBlock } from '@/components/CodeBlock';
+import { useTranslation } from 'react-i18next';
+import { useQuiz } from '@/context/QuizContext';
 
 interface ExportModalProps {
   quiz: Quiz;
@@ -12,6 +15,8 @@ interface ExportModalProps {
 
 export default function ExportModal({ quiz, onClose }: ExportModalProps) {
   const [copied, setCopied] = useState(false);
+  const { t } = useTranslation();
+  const { quizLanguage } = useQuiz();
   const codeRef = useRef<HTMLPreElement>(null);
   const generatedHtml = generateHtml(quiz);
 
@@ -121,7 +126,7 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
                             className="text-sm bg-green-600 hover:bg-green-700 px-2 py-1 h-auto"
                             size="sm"
                           >
-                            Show Solution
+                            {t('quiz.preview.showSolution', { lng: quizLanguage })}
                           </Button>
                         )}
                         
@@ -131,7 +136,7 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
                             className="text-sm border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 px-2 py-1 h-auto"
                             size="sm"
                           >
-                            Show Hint
+                            {t('quiz.preview.showHint', { lng: quizLanguage })}
                           </Button>
                         )}
                       </div>
@@ -162,7 +167,7 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
                             className="text-sm bg-green-600 hover:bg-green-700 px-2 py-1 h-auto"
                             size="sm"
                           >
-                            Show Solution
+                            {t('quiz.preview.showSolution', { lng: quizLanguage })}
                           </Button>
                         )}
                         
@@ -172,7 +177,7 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
                             className="text-sm border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 px-2 py-1 h-auto"
                             size="sm"
                           >
-                            Show Hint
+                            {t('quiz.preview.showHint', { lng: quizLanguage })}
                           </Button>
                         )}
                       </div>
@@ -205,7 +210,7 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
                             className="text-sm bg-green-600 hover:bg-green-700 px-2 py-1 h-auto"
                             size="sm"
                           >
-                            Show Solution
+                            {t('quiz.preview.showSolution', { lng: quizLanguage })}
                           </Button>
                         )}
                         
@@ -215,7 +220,7 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
                             className="text-sm border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 px-2 py-1 h-auto"
                             size="sm"
                           >
-                            Show Hint
+                            {t('quiz.preview.showHint', { lng: quizLanguage })}
                           </Button>
                         )}
                         
@@ -223,14 +228,14 @@ export default function ExportModal({ quiz, onClose }: ExportModalProps) {
                           className="text-sm bg-indigo-600 hover:bg-indigo-700 flex items-center px-2 py-1 h-auto"
                           size="sm"
                         >
-                          Run Code
+                          {t('quiz.preview.runCode', { lng: quizLanguage })}
                         </Button>
                       </div>
                       
                       {/* Output preview */}
                       <div className="mt-2 p-2 bg-gray-800 text-white rounded-md">
-                        <div className="text-xs text-gray-400 mb-1">Output:</div>
-                        <div className="font-mono text-xs">Code execution is available in the exported HTML</div>
+                        <div className="text-xs text-gray-400 mb-1">{t('quiz.preview.output', { lng: quizLanguage })}:</div>
+                        <div className="font-mono text-xs">{t('quiz.preview.codeExecutionAvailable', { lng: quizLanguage })}</div>
                       </div>
                     </div>
                   )}

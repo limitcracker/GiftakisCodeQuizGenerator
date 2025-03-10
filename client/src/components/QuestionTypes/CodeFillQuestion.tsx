@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { PencilIcon } from 'lucide-react';
 import { Question, CodeGap } from '@/types';
+import { useTranslation } from 'react-i18next';
+import { useQuiz } from '@/context/QuizContext';
 
 interface CodeFillQuestionProps {
   question: Question;
@@ -22,6 +24,8 @@ export default function CodeFillQuestion({
   onMoveUp,
   onMoveDown
 }: CodeFillQuestionProps) {
+  const { t } = useTranslation();
+  const { quizLanguage } = useQuiz();
   const [localTitle, setLocalTitle] = useState(question.title);
   const [localExplanation, setLocalExplanation] = useState(question.explanation || '');
   const [isEditingCode, setIsEditingCode] = useState(false);
@@ -106,36 +110,40 @@ export default function CodeFillQuestion({
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">
-            Question {question.order} <span className="text-sm font-normal text-gray-500">(Fill in the Gaps)</span>
+            {t('quiz.editor.fillGaps.messages.questionType', { number: question.order })}
           </h2>
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm" onClick={onMoveUp}>
-              Move Up
+              {t('quiz.editor.fillGaps.buttons.moveUp', { lng: quizLanguage })}
             </Button>
             <Button variant="outline" size="sm" onClick={onMoveDown}>
-              Move Down
+              {t('quiz.editor.fillGaps.buttons.moveDown', { lng: quizLanguage })}
             </Button>
             <Button variant="destructive" size="sm" onClick={onDelete}>
-              Delete
+              {t('quiz.editor.fillGaps.buttons.delete', { lng: quizLanguage })}
             </Button>
           </div>
         </div>
         
         <div className="space-y-4">
           <div>
-            <Label htmlFor={`title-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">Question Title</Label>
+            <Label htmlFor={`title-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+              {t('quiz.editor.fillGaps.labels.questionTitle', { lng: quizLanguage })}
+            </Label>
             <Input
               id={`title-${question.id}`}
               value={localTitle}
               onChange={(e) => setLocalTitle(e.target.value)}
-              placeholder="Enter question title..."
+              placeholder={t('quiz.editor.fillGaps.placeholders.questionTitle', { lng: quizLanguage })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           
           <div>
             <div className="flex items-center justify-between mb-1">
-              <Label className="block text-sm font-medium text-gray-700">Code with Gaps</Label>
+              <Label className="block text-sm font-medium text-gray-700">
+                {t('quiz.editor.fillGaps.labels.codeWithGaps', { lng: quizLanguage })}
+              </Label>
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -143,7 +151,7 @@ export default function CodeFillQuestion({
                 className="flex items-center text-xs"
               >
                 <PencilIcon className="h-3 w-3 mr-1" /> 
-                {isEditingCode ? 'View' : 'Edit'}
+                {isEditingCode ? t('quiz.editor.fillGaps.buttons.view', { lng: quizLanguage }) : t('quiz.editor.fillGaps.buttons.edit', { lng: quizLanguage })}
               </Button>
             </div>
             
@@ -153,17 +161,17 @@ export default function CodeFillQuestion({
                   value={codeWithGaps}
                   onChange={(e) => setCodeWithGaps(e.target.value)}
                   className="w-full h-32 px-3 py-2 font-mono text-sm border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Use [GAP_1:correctAnswer] syntax to create gaps. Example: const x = [GAP_1:10];"
+                  placeholder={t('quiz.editor.fillGaps.placeholders.codeWithGaps', { lng: quizLanguage })}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Use [GAP_n:answer] syntax, where n is the gap number and answer is the correct value.
+                  {t('quiz.editor.fillGaps.labels.gapSyntaxHelp', { lng: quizLanguage })}
                 </p>
                 <Button 
                   onClick={() => saveCodeWithGaps(codeWithGaps)}
                   size="sm"
                   className="mt-2"
                 >
-                  Apply Gaps
+                  {t('quiz.editor.fillGaps.buttons.applyGaps', { lng: quizLanguage })}
                 </Button>
               </div>
             ) : (
@@ -173,76 +181,50 @@ export default function CodeFillQuestion({
               />
             )}
           </div>
-          
+
           <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-1">Available Snippets</Label>
-            <div className="flex mb-2">
+            <Label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('quiz.editor.fillGaps.labels.availableSnippets', { lng: quizLanguage })}
+            </Label>
+            <div className="flex items-center space-x-2 mb-2">
               <Input
                 value={newSnippet}
                 onChange={(e) => setNewSnippet(e.target.value)}
-                placeholder="Add a code snippet..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder={t('quiz.editor.fillGaps.placeholders.addSnippet', { lng: quizLanguage })}
+                className="flex-1"
               />
-              <Button 
-                onClick={handleAddSnippet}
-                className="rounded-l-none"
-              >
-                Add
+              <Button onClick={handleAddSnippet}>
+                {t('quiz.editor.fillGaps.buttons.add', { lng: quizLanguage })}
               </Button>
             </div>
-            
-            <div className="flex flex-wrap gap-2 p-3 min-h-12 border border-dashed border-gray-300 rounded-md">
+            <div className="space-y-2">
               {availableSnippets.map((snippet, index) => (
-                <div 
-                  key={index}
-                  className="relative border border-gray-300 rounded bg-white px-3 py-1 font-mono text-sm group"
-                >
-                  {snippet}
-                  <button
+                <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                  <code className="text-sm">{snippet}</code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleRemoveSnippet(index)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="text-red-500 hover:text-red-700"
                   >
                     ×
-                  </button>
-                  <div className="flex mt-1 space-x-1">
-                    <button
-                      onClick={() => index > 0 && moveSnippet(index, index - 1)}
-                      disabled={index === 0}
-                      className={`text-xs px-1 ${index === 0 ? 'text-gray-400' : 'text-blue-600 hover:text-blue-800'}`}
-                    >
-                      ↑
-                    </button>
-                    <button
-                      onClick={() => index < availableSnippets.length - 1 && moveSnippet(index, index + 1)}
-                      disabled={index === availableSnippets.length - 1}
-                      className={`text-xs px-1 ${index === availableSnippets.length - 1 ? 'text-gray-400' : 'text-blue-600 hover:text-blue-800'}`}
-                    >
-                      ↓
-                    </button>
-                  </div>
+                  </Button>
                 </div>
               ))}
             </div>
           </div>
-          
+
           <div>
-            <Label htmlFor={`explanation-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">Explanation (Optional)</Label>
+            <Label htmlFor={`explanation-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+              {t('quiz.editor.fillGaps.labels.explanation', { lng: quizLanguage })}
+            </Label>
             <Textarea
               id={`explanation-${question.id}`}
               value={localExplanation}
               onChange={(e) => setLocalExplanation(e.target.value)}
-              placeholder="Add explanation for correct answer..."
+              placeholder={t('quiz.editor.fillGaps.placeholders.explanation', { lng: quizLanguage })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              rows={2}
             />
-          </div>
-          
-          <div className="pt-4 border-t border-gray-200 flex justify-end">
-            <Button 
-              onClick={handleSave}
-              className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
-              Save Question
-            </Button>
           </div>
         </div>
       </CardContent>
