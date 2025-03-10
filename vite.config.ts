@@ -28,9 +28,15 @@ export default defineConfig({
       "@shared": path.resolve(__dirname, "shared"),
     },
   },
-  root: path.resolve(__dirname, "client"),
+  optimizeDeps: {
+    exclude: ['@rollup/rollup-win32-x64-msvc']
+  },
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      external: ['@rollup/rollup-win32-x64-msvc']
+    }
   },
+  root: path.resolve(__dirname, "client"),
 });
