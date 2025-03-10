@@ -82,6 +82,7 @@
   "devDependencies": {
     "@replit/vite-plugin-cartographer": "^0.0.4",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
+    "@rollup/rollup-win32-x64-msvc": "^4.35.0",
     "@tailwindcss/typography": "^0.5.15",
     "@types/connect-pg-simple": "^7.0.3",
     "@types/express": "4.17.21",
@@ -94,6 +95,7 @@
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
     "drizzle-kit": "^0.30.4",
     "esbuild": "^0.25.0",
     "postcss": "^8.4.47",

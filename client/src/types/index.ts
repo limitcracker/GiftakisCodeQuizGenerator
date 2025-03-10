@@ -27,6 +27,8 @@ export interface Quiz {
   timeLimit: number | null; // Overall quiz time limit in seconds (null = no limit)
   hideFooter?: boolean; // Option to hide the "Powered by" footer
   style?: QuizStyle; // Custom styling options for the quiz
+  stepByStep?: boolean; // Whether to show questions one at a time
+  requireCorrectAnswer?: boolean; // Whether to require correct answers before proceeding
 }
 
 export interface Question {

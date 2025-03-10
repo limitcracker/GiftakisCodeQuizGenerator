@@ -17,7 +17,14 @@ export default function QuizInformation({
   description,
   setDescription
 }: QuizInformationProps) {
-  const { hideFooter, setHideFooter } = useQuiz();
+  const { 
+    hideFooter, 
+    setHideFooter, 
+    stepByStep, 
+    setStepByStep, 
+    requireCorrectAnswer, 
+    setRequireCorrectAnswer 
+  } = useQuiz();
   
   return (
     <div className="mb-6">
@@ -45,15 +52,41 @@ export default function QuizInformation({
             rows={3}
           />
         </div>
-        <div className="flex items-center space-x-2 pt-2">
-          <Switch 
-            id="hide-footer" 
-            checked={hideFooter} 
-            onCheckedChange={setHideFooter} 
-          />
-          <Label htmlFor="hide-footer" className="text-sm font-medium text-gray-700">
-            Hide "Powered by" footer
-          </Label>
+        <div className="space-y-2 pt-2">
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="hide-footer" 
+              checked={hideFooter} 
+              onCheckedChange={setHideFooter} 
+            />
+            <Label htmlFor="hide-footer" className="text-sm font-medium text-gray-700">
+              Hide "Powered by" footer
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="step-by-step" 
+              checked={stepByStep} 
+              onCheckedChange={setStepByStep} 
+            />
+            <Label htmlFor="step-by-step" className="text-sm font-medium text-gray-700">
+              Show questions one at a time
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="require-correct" 
+              checked={requireCorrectAnswer} 
+              onCheckedChange={setRequireCorrectAnswer}
+              disabled={!stepByStep} 
+            />
+            <Label htmlFor="require-correct" className="text-sm font-medium text-gray-700">
+              Require correct answers before proceeding
+            </Label>
+            {!stepByStep && (
+              <span className="text-sm text-gray-500 ml-2">(Enable step-by-step mode first)</span>
+            )}
+          </div>
         </div>
       </div>
     </div>

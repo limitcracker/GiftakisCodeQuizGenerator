@@ -50,6 +50,10 @@ type QuizContextType = {
   moveQuestionUp: (questionId: string) => void;
   moveQuestionDown: (questionId: string) => void;
   resetQuiz: () => void;
+  stepByStep: boolean;
+  setStepByStep: (enabled: boolean) => void;
+  requireCorrectAnswer: boolean;
+  setRequireCorrectAnswer: (required: boolean) => void;
 };
 
 // Create the context
@@ -329,7 +333,11 @@ export const QuizProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     deleteQuestion,
     moveQuestionUp,
     moveQuestionDown,
-    resetQuiz
+    resetQuiz,
+    stepByStep: quiz.stepByStep || false,
+    setStepByStep: (enabled) => setQuiz(prev => ({ ...prev, stepByStep: enabled })),
+    requireCorrectAnswer: quiz.requireCorrectAnswer || false,
+    setRequireCorrectAnswer: (required) => setQuiz(prev => ({ ...prev, requireCorrectAnswer: required }))
   };
   
   return (
