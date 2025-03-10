@@ -3,6 +3,16 @@ import { Button } from '@/components/ui/button';
 import { X, Play } from 'lucide-react';
 import { Quiz, Question, CodeOrderBlock } from '@/types';
 import { CodeBlock } from '@/components/CodeBlock';
+import type { 
+  DragDropContextProps, 
+  DroppableProps, 
+  DraggableProps,
+  DropResult,
+  DroppableProvided,
+  DraggableProvided,
+  DroppableStateSnapshot,
+  DraggableStateSnapshot
+} from '@hello-pangea/dnd';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 interface PreviewModalProps {
@@ -18,9 +28,10 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
   const [codeOutputs, setCodeOutputs] = useState<{[key: string]: string}>({});
   const [isRunning, setIsRunning] = useState<{[key: string]: boolean}>({});
   const [selectedAnswers, setSelectedAnswers] = useState<{[key: string]: string | string[]}>({});
-  const [feedback, setFeedback] = useState<{[key: string]: { isCorrect: boolean; message: string }}>({});
+  const [feedback, setFeedback] = useState<{[key: string]: string}>({});
   const [orderedBlocks, setOrderedBlocks] = useState<{[key: string]: CodeOrderBlock[]}>({});
   const [userOrderedBlocks, setUserOrderedBlocks] = useState<{[key: string]: CodeOrderBlock[]}>({});
+  const [gapAnswers, setGapAnswers] = useState<{ [key: string]: { [gapId: string]: string } }>({});
   
   const handleClickOutside = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -175,10 +186,7 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
       if (!question.codeBlocks || !orderedBlocks[question.id]) {
         setFeedback(prev => ({
           ...prev,
-          [question.id]: {
-            isCorrect: false,
-            message: 'Please arrange the code blocks first.'
-          }
+          [question.id]: 'Please arrange the code blocks first.'
         }));
         return;
       }
@@ -192,12 +200,30 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
 
       setFeedback(prev => ({
         ...prev,
-        [question.id]: {
-          isCorrect,
-          message: isCorrect 
-            ? 'Correct! The code blocks are in the right order.' 
-            : 'Incorrect. Try rearranging the blocks to match the correct order. Click "Show Solution" to see the correct arrangement.'
-        }
+        [question.id]: isCorrect 
+          ? 'Correct! The code blocks are in the right order.' 
+          : 'Incorrect. Try rearranging the blocks to match the correct order. Click "Show Solution" to see the correct arrangement.'
+      }));
+      return;
+    }
+
+    // For fill-gaps questions
+    if (question.type === 'fill-gaps') {
+      const answers = gapAnswers[question.id] || {};
+      const isCorrect = question.gaps?.every((gap: any) => 
+        answers[gap.id] === gap.answer
+      );
+
+      // Clear any existing feedback first
+      if (feedback[question.id]) {
+        return;
+      }
+
+      setFeedback(prev => ({
+        ...prev,
+        [question.id]: isCorrect 
+          ? "Correct! All gaps are filled correctly." 
+          : "Some answers are incorrect. Try again or check the solution."
       }));
       return;
     }
@@ -215,12 +241,9 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
 
       setFeedback(prev => ({
         ...prev,
-        [question.id]: {
-          isCorrect,
-          message: isCorrect 
-            ? 'Correct! Your code matches the solution.' 
-            : 'Incorrect. Your code does not match the solution. Try again or click "Show Solution" to see the correct code.'
-        }
+        [question.id]: isCorrect 
+          ? 'Correct! Your code matches the solution.' 
+          : 'Incorrect. Your code does not match the solution. Try again or click "Show Solution" to see the correct code.'
       }));
       return;
     }
@@ -231,10 +254,7 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
     if (!selectedAnswer) {
       setFeedback(prev => ({
         ...prev,
-        [question.id]: {
-          isCorrect: false,
-          message: 'Please select an answer.'
-        }
+        [question.id]: 'Please select an answer.'
       }));
       return;
     }
@@ -245,12 +265,9 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
       
       setFeedback(prev => ({
         ...prev,
-        [question.id]: {
-          isCorrect,
-          message: isCorrect 
-            ? 'Correct!' 
-            : 'Incorrect. Try again or click "Show Solution" to see the answer.'
-        }
+        [question.id]: isCorrect 
+          ? 'Correct!' 
+          : 'Incorrect. Try again or click "Show Solution" to see the answer.'
       }));
     } else if (question.type === 'multiple-choice') {
       const selectedAnswerArray = Array.isArray(selectedAnswer) ? selectedAnswer : [selectedAnswer];
@@ -264,14 +281,11 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
       
       setFeedback(prev => ({
         ...prev,
-        [question.id]: {
-          isCorrect,
-          message: isCorrect 
-            ? 'Correct! You selected all the right answers.' 
-            : allCorrectSelected 
-              ? 'Almost there! You selected all correct answers but also some incorrect ones.' 
-              : 'Incorrect. Make sure to select all correct answers and only correct answers.'
-        }
+        [question.id]: isCorrect 
+          ? 'Correct! You selected all the right answers.' 
+          : allCorrectSelected 
+            ? 'Almost there! You selected all correct answers but also some incorrect ones.' 
+            : 'Incorrect. Make sure to select all correct answers and only correct answers.'
       }));
     }
   };
@@ -279,14 +293,15 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
   const handleDragEnd = (result: any, questionId: string) => {
     if (!result.destination) return;
 
-    const blocks = orderedBlocks[questionId] || [];
-    const reorderedBlocks = Array.from(blocks);
-    const [removed] = reorderedBlocks.splice(result.source.index, 1);
-    reorderedBlocks.splice(result.destination.index, 0, removed);
+    const { source, destination, draggableId } = result;
+    const snippet = draggableId;
 
-    setOrderedBlocks(prev => ({
+    setGapAnswers(prev => ({
       ...prev,
-      [questionId]: reorderedBlocks
+      [questionId]: {
+        ...prev[questionId],
+        [destination.droppableId]: snippet
+      }
     }));
   };
 
@@ -294,10 +309,7 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
     if (!question.codeBlocks || !orderedBlocks[question.id]) {
       setFeedback(prev => ({
         ...prev,
-        [question.id]: {
-          isCorrect: false,
-          message: 'Please arrange the code blocks first.'
-        }
+        [question.id]: 'Please arrange the code blocks first.'
       }));
       return;
     }
@@ -311,12 +323,9 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
 
     setFeedback(prev => ({
       ...prev,
-      [question.id]: {
-        isCorrect,
-        message: isCorrect 
-          ? 'Correct! The code blocks are in the right order.' 
-          : 'Incorrect. Try rearranging the blocks to match the correct order. Click "Show Solution" to see the correct arrangement.'
-      }
+      [question.id]: isCorrect 
+        ? 'Correct! The code blocks are in the right order.' 
+        : 'Incorrect. Try rearranging the blocks to match the correct order. Click "Show Solution" to see the correct arrangement.'
     }));
   };
 
@@ -404,10 +413,8 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                                           ? block.correctPosition === index + 1
                                             ? 'border-green-500 bg-green-50/10'
                                             : 'border-red-500 bg-red-50/10'
-                                          : feedback[question.id]?.isCorrect
+                                          : feedback[question.id]?.startsWith('Correct')
                                           ? 'border-green-500'
-                                          : feedback[question.id]?.isCorrect === false
-                                          ? 'border-red-500'
                                           : 'border-blue-500'
                                       } ${snapshot.isDragging ? 'opacity-50' : ''} cursor-move relative`}
                                     >
@@ -461,10 +468,8 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                             className={`p-3 border rounded-md hover:bg-gray-50 cursor-pointer flex items-start ${
                               showSolution[question.id] && option.isCorrect 
                                 ? 'border-green-500 bg-green-50' 
-                                : feedback[question.id]?.isCorrect && selectedAnswers[question.id] === option.id
+                                : feedback[question.id]?.startsWith('Correct') && selectedAnswers[question.id] === option.id
                                 ? 'border-green-500 bg-green-50'
-                                : feedback[question.id]?.isCorrect === false && selectedAnswers[question.id] === option.id
-                                ? 'border-red-500 bg-red-50'
                                 : 'border-gray-200'
                             }`}
                             onClick={() => handleAnswerChange(question.id, option.id, question.type as 'single-choice' | 'multiple-choice')}
@@ -530,29 +535,108 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                   
                   {question.type === 'fill-gaps' && (
                     <>
-                      <div className="bg-[#1E293B] p-4 rounded-md font-mono text-sm text-[#E5E7EB] mb-4">
-                        {question.codeWithGaps && (
-                          <pre>
-                            <code dangerouslySetInnerHTML={{ 
-                              __html: question.codeWithGaps.replace(
-                                /\[GAP_\d+\]/g, 
-                                '<span class="bg-gray-700 px-2 py-1 rounded border border-dashed border-gray-500">_______</span>'
-                              ) 
-                            }} />
-                          </pre>
+                      <DragDropContext onDragEnd={(result) => handleDragEnd(result, question.id)}>
+                        <div className="bg-[#1E293B] p-4 rounded-md font-mono text-sm text-[#E5E7EB] mb-4">
+                          {question.codeWithGaps && (
+                            <pre>
+                              <code>
+                                {question.codeWithGaps.split(/(\[GAP_\d+\])/).map((part, index) => {
+                                  const gapMatch = part.match(/\[GAP_(\d+)\]/);
+                                  if (gapMatch) {
+                                    const gapNumber = parseInt(gapMatch[1]);
+                                    const gap = question.gaps?.find(g => g.position === gapNumber);
+                                    if (gap) {
+                                      return (
+                                        <Droppable key={gap.id} droppableId={gap.id}>
+                                          {(provided: any, snapshot: any) => (
+                                            <span
+                                              ref={provided.innerRef}
+                                              {...provided.droppableProps}
+                                              className={`inline-block px-2 py-1 mx-1 rounded-md ${
+                                                snapshot.isDraggingOver 
+                                                  ? 'bg-blue-600 border-blue-400' 
+                                                  : 'bg-slate-700 border-slate-500'
+                                              } ${
+                                                gapAnswers[question.id]?.[gap.id] 
+                                                  ? 'border-green-400 text-white' 
+                                                  : 'border-dashed text-slate-300'
+                                              } border-2 hover:border-blue-400 transition-colors`}
+                                            >
+                                              {gapAnswers[question.id]?.[gap.id] || '[ Drop Here ]'}
+                                              {provided.placeholder}
+                                            </span>
+                                          )}
+                                        </Droppable>
+                                      );
+                                    }
+                                  }
+                                  return <span key={index}>{part}</span>;
+                                })}
+                              </code>
+                            </pre>
+                          )}
+                          
+                          <div className="mt-4">
+                            <h3 className="text-sm font-medium mb-2 text-white">Available Snippets:</h3>
+                            <Droppable droppableId="snippets">
+                              {(provided: any) => (
+                                <div 
+                                  ref={provided.innerRef}
+                                  {...provided.droppableProps}
+                                  className="flex flex-wrap gap-2"
+                                >
+                                  {(question.availableSnippets || []).map((snippet, i) => (
+                                    <Draggable key={snippet} draggableId={snippet} index={i}>
+                                      {(provided: any, snapshot: any) => (
+                                        <div
+                                          ref={provided.innerRef}
+                                          {...provided.draggableProps}
+                                          {...provided.dragHandleProps}
+                                          className={`border-2 border-blue-400 rounded px-3 py-1 font-mono text-sm cursor-move ${
+                                            snapshot.isDragging 
+                                              ? 'bg-blue-100 text-blue-900' 
+                                              : 'bg-white text-slate-900'
+                                          } hover:bg-blue-50 hover:border-blue-500 transition-colors`}
+                                        >
+                                          {snippet}
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  ))}
+                                  {provided.placeholder}
+                                </div>
+                              )}
+                            </Droppable>
+                          </div>
+                        </div>
+                      </DragDropContext>
+
+                      <div className="flex space-x-2 mb-4">
+                        <Button onClick={() => checkAnswer(question)}>
+                          Check Answer
+                        </Button>
+                        {!question.hideSolution && (
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setShowSolution(prev => ({ ...prev, [question.id]: !prev[question.id] }))}
+                          >
+                            {showSolution[question.id] ? 'Hide Solution' : 'Show Solution'}
+                          </Button>
                         )}
                       </div>
-                      
-                      <div className="mb-4">
-                        <h3 className="text-sm font-medium mb-2">Drag snippets here:</h3>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {(question.availableSnippets || []).map((snippet, i) => (
-                            <div key={i} className="border border-gray-300 rounded bg-white px-3 py-1 font-mono text-sm cursor-move">
-                              {snippet}
-                            </div>
-                          ))}
+
+                      {showSolution[question.id] && (
+                        <div className="bg-green-50 border border-green-200 p-4 rounded-md mb-4">
+                          <h3 className="font-medium text-green-800 mb-2">Solution:</h3>
+                          <div className="font-mono text-sm">
+                            {question.gaps?.map((gap: any, index: number) => (
+                              <div key={gap.id} className="text-green-700">
+                                Gap {index + 1}: {gap.answer}
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </>
                   )}
                   
@@ -772,9 +856,9 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                   
                   {feedback[question.id] && (
                     <div className={`p-3 mb-4 rounded-md ${
-                      feedback[question.id].isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                      feedback[question.id].startsWith('Correct') ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
                     }`}>
-                      {feedback[question.id].message}
+                      {feedback[question.id]}
                     </div>
                   )}
                   
