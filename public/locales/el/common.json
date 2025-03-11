@@ -1,0 +1,35 @@
+{
+  "quiz": {
+    "preview": {
+      "questionTypeNotImplemented": "Αυτός ο τύπος ερώτησης δεν έχει υλοποιηθεί ακόμα.",
+      "preview": "Προεπισκόπηση",
+      "exportHtml": "Εξαγωγή HTML",
+      "addQuestion": "Προσθήκη Ερώτησης",
+      "debugInfo": "Υπάρχουν {{count}} ερωτήσεις. Επιλεγμένος τύπος: {{type}}",
+      "questionNumber": "Ερώτηση {{number}} από {{total}}",
+      "correct": "Σωστό!",
+      "incorrect": "Λάθος!",
+      "selectAnswer": "Παρακαλώ επιλέξτε μια απάντηση",
+      "answerRecorded": "Η απάντησή σας καταγράφηκε",
+      "noBlocksToArrange": "Δεν υπάρχουν μπλοκ κώδικα για διάταξη",
+      "previous": "Προηγούμενο",
+      "next": "Επόμενο",
+      "checkAnswer": "Έλεγχος Απάντησης",
+      "showSolution": "Εμφάνιση Λύσης",
+      "hideSolution": "Απόκρυψη Λύσης",
+      "showHint": "Εμφάνιση Βοήθειας",
+      "hideHint": "Απόκρυψη Βοήθειας",
+      "writeAnswer": "Γράψτε την απάντησή σας εδώ...",
+      "identifyErrors": "Εντοπίστε και περιγράψτε τα σφάλματα στον κώδικα...",
+      "jigsawInstructions": "Συνδυάστε τα κομμάτια του κώδικα για να δημιουργήσετε το σωστό πρόγραμμα",
+      "fillGapsInstructions": "Συμπληρώστε τα κενά στον κώδικα",
+      "running": "Εκτέλεση...",
+      "runCode": "Εκτέλεση Κώδικα",
+      "output": "Έξοδος",
+      "solution": "Λύση",
+      "codeOrder": {
+        "block": "Μπλοκ {{number}}"
+      }
+    }
+  }
+} 
