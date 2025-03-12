@@ -8,9 +8,11 @@ import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { useQuiz } from '@/context/QuizContext';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { 
-  DropResult as DndDropResult, 
-  DroppableProvided as DndDroppableProvided, 
-  DraggableProvided as DndDraggableProvided 
+  DropResult, 
+  DroppableProvided, 
+  DraggableProvided,
+  DraggableStateSnapshot,
+  DroppableStateSnapshot
 } from '@hello-pangea/dnd';
 import React from 'react';
 
@@ -39,6 +41,19 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
   const [gapAnswers, setGapAnswers] = useState<{ [key: string]: { [gapId: string]: string } }>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
+  const handleDragEnd = (result: any, questionId: string) => {
+    if (!result.destination) return;
+
+    const items = Array.from(orderedBlocks[questionId]);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setOrderedBlocks(prev => ({
+      ...prev,
+      [questionId]: items
+    }));
+  };
+
   // Initialize code blocks for code-order questions
   useEffect(() => {
     quiz.questions.forEach(question => {
@@ -61,12 +76,13 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
     const question = quiz.questions.find(q => q.id === questionId);
     if (!question) return;
 
+    const newShowSolution = !showSolution[questionId];
     setShowSolution(prev => ({
       ...prev,
-      [questionId]: !prev[questionId]
+      [questionId]: newShowSolution
     }));
 
-    if (!showSolution[questionId]) {
+    if (newShowSolution) {
       // Store current user input before showing solution
       if (question.type === 'text') {
         setUserInputs(prev => ({
@@ -129,11 +145,21 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
           }
           break;
         case 'text':
+        case 'fill-whole':
           // Restore the user's original input
           setCodeInputs(prev => ({
             ...prev,
             [questionId]: userInputs[questionId] ?? ''
           }));
+          break;
+        case 'multiple-choice':
+        case 'single-choice':
+          // Clear the selected answers when hiding solution
+          setSelectedAnswers(prev => {
+            const newAnswers = { ...prev };
+            delete newAnswers[questionId];
+            return newAnswers;
+          });
           break;
       }
     }
@@ -343,32 +369,43 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
           {/* All Questions */}
           <div className="space-y-8">
             {quiz.questions.map((question, index) => 
-              index === currentQuestionIndex ? (
+              !quiz.stepByStep || index === currentQuestionIndex ? (
                 <div key={question.id} className="space-y-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">
+                  {quiz.stepByStep && (
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-medium">
+                        {t('quiz.preview.questionNumber', { 
+                          number: index + 1, 
+                          total: quiz.questions.length,
+                          lng: quizLanguage 
+                        })}
+                      </h3>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={handlePreviousQuestion}
+                          disabled={currentQuestionIndex === 0}
+                        >
+                          {t('quiz.preview.previous', { lng: quizLanguage })}
+                        </Button>
+                        <Button
+                          onClick={handleNextQuestion}
+                          disabled={currentQuestionIndex === quiz.questions.length - 1}
+                        >
+                          {t('quiz.preview.next', { lng: quizLanguage })}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  {!quiz.stepByStep && (
+                    <h3 className="text-lg font-medium mb-4">
                       {t('quiz.preview.questionNumber', { 
                         number: index + 1, 
                         total: quiz.questions.length,
                         lng: quizLanguage 
                       })}
                     </h3>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={handlePreviousQuestion}
-                        disabled={currentQuestionIndex === 0}
-                      >
-                        {t('quiz.preview.previous', { lng: quizLanguage })}
-                      </Button>
-                      <Button
-                        onClick={handleNextQuestion}
-                        disabled={currentQuestionIndex === quiz.questions.length - 1}
-                      >
-                        {t('quiz.preview.next', { lng: quizLanguage })}
-                      </Button>
-                    </div>
-                  </div>
+                  )}
 
                   <div className="bg-white rounded-lg shadow p-6">
                     <h4 className="text-lg font-medium mb-4">
@@ -383,7 +420,7 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                             <div className="space-y-4">
                               <DragDropContext onDragEnd={(result) => handleDragEnd(result, question.id)}>
                                 <Droppable droppableId={question.id}>
-                                  {(provided: DndDroppableProvided) => (
+                                  {(provided, snapshot) => (
                                     <div
                                       {...provided.droppableProps}
                                       ref={provided.innerRef}
@@ -395,12 +432,23 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                                           draggableId={block.id}
                                           index={blockIndex}
                                         >
-                                          {(provided: DndDraggableProvided) => (
+                                          {(provided, snapshot) => (
                                             <div
                                               ref={provided.innerRef}
                                               {...provided.draggableProps}
                                               {...provided.dragHandleProps}
-                                              className="bg-gray-50 p-4 rounded-lg border border-gray-200"
+                                              className={`bg-gray-50 rounded-lg border border-gray-200 ${
+                                                snapshot.isDragging ? 'shadow-lg' : ''
+                                              }`}
+                                              style={{
+                                                ...provided.draggableProps.style,
+                                                cursor: 'grab',
+                                                userSelect: 'none',
+                                                padding: '0.5rem',
+                                                margin: '0.25rem 0',
+                                                backgroundColor: snapshot.isDragging ? '#ffffff' : undefined,
+                                                boxShadow: snapshot.isDragging ? '0 5px 15px rgba(0,0,0,0.1)' : undefined
+                                              }}
                                             >
                                               <CodeBlock code={block.content} language={question.language || 'javascript'} />
                                             </div>
