@@ -224,7 +224,7 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
       case 'multiple-choice':
       case 'single-choice':
         if (!selectedAnswers[question.id]) {
-          feedbackMessage = t('quiz.preview.selectAnswer', { lng: quizLanguage });
+          feedbackMessage = t('quiz.preview.pleaseSelectOption', { lng: quizLanguage });
           break;
         }
         const selected = selectedAnswers[question.id];
@@ -249,7 +249,7 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
 
       case 'fill-gaps':
         if (!gapAnswers[question.id] || !question.gaps) {
-          feedbackMessage = t('quiz.preview.fillAllGaps', { lng: quizLanguage });
+          feedbackMessage = t('quiz.preview.writeAnswer', { lng: quizLanguage });
           break;
         }
         
@@ -258,7 +258,7 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
         );
         
         if (!allGapsFilled) {
-          feedbackMessage = t('quiz.preview.fillAllGaps', { lng: quizLanguage });
+          feedbackMessage = t('quiz.preview.writeAnswer', { lng: quizLanguage });
           break;
         }
 
@@ -285,8 +285,8 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
         break;
 
       case 'find-code-errors':
-        if (!codeInputs[question.id]) {
-          feedbackMessage = t('quiz.preview.identifyErrors', { lng: quizLanguage });
+        if (!codeInputs[question.id]?.trim()) {
+          feedbackMessage = t('quiz.preview.writeAnswer', { lng: quizLanguage });
           break;
         }
         feedbackMessage = t('quiz.preview.answerRecorded', { lng: quizLanguage });
@@ -342,590 +342,682 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
         <div className="flex-1 overflow-y-auto py-4">
           {/* All Questions */}
           <div className="space-y-8">
-            {quiz.questions.map((question, index) => (
-              <div key={question.id} className="space-y-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">
-                    {t('quiz.preview.questionNumber', { 
-                      number: index + 1, 
-                      total: quiz.questions.length,
-                      lng: quizLanguage 
-                    })}
-                  </h3>
-                </div>
+            {quiz.questions.map((question, index) => 
+              index === currentQuestionIndex ? (
+                <div key={question.id} className="space-y-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">
+                      {t('quiz.preview.questionNumber', { 
+                        number: index + 1, 
+                        total: quiz.questions.length,
+                        lng: quizLanguage 
+                      })}
+                    </h3>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={handlePreviousQuestion}
+                        disabled={currentQuestionIndex === 0}
+                      >
+                        {t('quiz.preview.previous', { lng: quizLanguage })}
+                      </Button>
+                      <Button
+                        onClick={handleNextQuestion}
+                        disabled={currentQuestionIndex === quiz.questions.length - 1}
+                      >
+                        {t('quiz.preview.next', { lng: quizLanguage })}
+                      </Button>
+                    </div>
+                  </div>
 
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h4 className="text-lg font-medium mb-4">
-                    {question.title}
-                  </h4>
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <h4 className="text-lg font-medium mb-4">
+                      {question.title}
+                    </h4>
 
-                  {/* Question Content */}
-                  {(() => {
-                    switch (question.type) {
-                      case 'code-order':
-                        return (
-                          <div className="space-y-4">
-                            <DragDropContext onDragEnd={(result) => handleDragEnd(result, question.id)}>
-                              <Droppable droppableId={question.id}>
-                                {(provided: DndDroppableProvided) => (
-                                  <div
-                                    {...provided.droppableProps}
-                                    ref={provided.innerRef}
-                                    className="space-y-2"
-                                  >
-                                    {orderedBlocks[question.id]?.map((block, blockIndex) => (
-                                      <Draggable
-                                        key={block.id}
-                                        draggableId={block.id}
-                                        index={blockIndex}
-                                      >
-                                        {(provided: DndDraggableProvided) => (
-                                          <div
-                                            ref={provided.innerRef}
-                                            {...provided.draggableProps}
-                                            {...provided.dragHandleProps}
-                                            className="bg-gray-50 p-4 rounded-lg border border-gray-200"
-                                          >
-                                            <CodeBlock code={block.content} language={question.language || 'javascript'} />
-                                          </div>
-                                        )}
-                                      </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                  </div>
-                                )}
-                              </Droppable>
-                            </DragDropContext>
-                            
-                            <div className="flex gap-2 mt-4">
-                              <Button onClick={() => checkAnswer(question)}>
-                                {t('quiz.preview.checkAnswer', { lng: quizLanguage })}
-                              </Button>
-                              {!question.hideSolution && (
-                                <Button 
-                                  variant="outline" 
-                                  onClick={() => toggleSolution(question.id)}
-                                >
-                                  {showSolution[question.id] 
-                                    ? t('quiz.preview.hideSolution', { lng: quizLanguage })
-                                    : t('quiz.preview.showSolution', { lng: quizLanguage })}
-                                </Button>
-                              )}
-                              {question.hintComment && (
-                                <Button 
-                                  variant="outline" 
-                                  onClick={() => toggleHint(question.id)}
-                                >
-                                  {showHint[question.id]
-                                    ? t('quiz.preview.hideHint', { lng: quizLanguage })
-                                    : t('quiz.preview.showHint', { lng: quizLanguage })}
-                                </Button>
-                              )}
-                            </div>
-                            
-                            {feedback[question.id] && (
-                              <div className={`p-4 rounded-lg ${
-                                feedback[question.id] === t('quiz.preview.correct', { lng: quizLanguage })
-                                  ? 'bg-green-50 text-green-800 border border-green-200'
-                                  : 'bg-red-50 text-red-800 border border-red-200'
-                              }`}>
-                                {feedback[question.id]}
-                              </div>
-                            )}
-                            
-                            {showHint[question.id] && question.hintComment && (
-                              <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-amber-800">💡</span>
-                                  <span className="text-amber-800">{question.hintComment}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                        
-                      case 'multiple-choice':
-                      case 'single-choice':
-                        return (
-                          <div className="space-y-4">
-                            {question.codeExample && (
-                              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <CodeBlock code={question.codeExample} language={question.language || 'javascript'} />
-                              </div>
-                            )}
-                            
-                            <div className="space-y-2">
-                              {question.options?.map((option) => (
-                                <div key={option.id} className="flex items-center gap-2">
-                                  <input
-                                    type={question.type === 'multiple-choice' ? 'checkbox' : 'radio'}
-                                    id={option.id}
-                                    name={`question-${question.id}`}
-                                    checked={
-                                      question.type === 'multiple-choice'
-                                        ? Array.isArray(selectedAnswers[question.id]) &&
-                                          (selectedAnswers[question.id] as string[]).includes(option.id)
-                                        : selectedAnswers[question.id] === option.id
-                                    }
-                                    onChange={() => handleAnswerChange(
-                                      question.id, 
-                                      option.id, 
-                                      question.type as AnswerType
-                                    )}
-                                    className="h-4 w-4"
-                                  />
-                                  <label htmlFor={option.id} className="text-sm">
-                                    {option.text}
-                                  </label>
-                                  {showSolution[question.id] && option.isCorrect && (
-                                    <span className="text-green-600 text-sm ml-2">✓</span>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                            
-                            <div className="flex gap-2 mt-4">
-                              <Button onClick={() => checkAnswer(question)}>
-                                {t('quiz.preview.checkAnswer', { lng: quizLanguage })}
-                              </Button>
-                              {!question.hideSolution && (
-                                <Button 
-                                  variant="outline" 
-                                  onClick={() => toggleSolution(question.id)}
-                                >
-                                  {showSolution[question.id] 
-                                    ? t('quiz.preview.hideSolution', { lng: quizLanguage })
-                                    : t('quiz.preview.showSolution', { lng: quizLanguage })}
-                                </Button>
-                              )}
-                            </div>
-                            
-                            {feedback[question.id] && (
-                              <div className={`p-4 rounded-lg ${
-                                feedback[question.id] === t('quiz.preview.correct', { lng: quizLanguage })
-                                  ? 'bg-green-50 text-green-800 border border-green-200'
-                                  : 'bg-red-50 text-red-800 border border-red-200'
-                              }`}>
-                                {feedback[question.id]}
-                              </div>
-                            )}
-
-                            {showSolution[question.id] && (
-                              <div className="bg-green-50 p-4 rounded-lg border border-green-200 mt-4">
-                                <div className="text-green-800 font-medium mb-2">
-                                  {t('quiz.preview.solution', { lng: quizLanguage })}:
-                                </div>
-                                <div className="space-y-2">
-                                  {question.options?.filter(opt => opt.isCorrect).map((option) => (
-                                    <div key={option.id} className="text-green-700">
-                                      • {option.text}
+                    {/* Question Content */}
+                    {(() => {
+                      switch (question.type) {
+                        case 'code-order':
+                          return (
+                            <div className="space-y-4">
+                              <DragDropContext onDragEnd={(result) => handleDragEnd(result, question.id)}>
+                                <Droppable droppableId={question.id}>
+                                  {(provided: DndDroppableProvided) => (
+                                    <div
+                                      {...provided.droppableProps}
+                                      ref={provided.innerRef}
+                                      className="space-y-2"
+                                    >
+                                      {orderedBlocks[question.id]?.map((block, blockIndex) => (
+                                        <Draggable
+                                          key={block.id}
+                                          draggableId={block.id}
+                                          index={blockIndex}
+                                        >
+                                          {(provided: DndDraggableProvided) => (
+                                            <div
+                                              ref={provided.innerRef}
+                                              {...provided.draggableProps}
+                                              {...provided.dragHandleProps}
+                                              className="bg-gray-50 p-4 rounded-lg border border-gray-200"
+                                            >
+                                              <CodeBlock code={block.content} language={question.language || 'javascript'} />
+                                            </div>
+                                          )}
+                                        </Draggable>
+                                      ))}
+                                      {provided.placeholder}
                                     </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                        
-                      case 'fill-whole':
-                        return (
-                          <div className="space-y-4">
-                            {question.codePrefix && (
-                              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <CodeBlock code={question.codePrefix} language={question.language || 'javascript'} />
-                              </div>
-                            )}
-                            
-                            <div className="bg-white border border-gray-200 rounded-lg">
-                              <textarea
-                                value={codeInputs[question.id] || ''}
-                                onChange={(e) => handleCodeChange(question.id, e.target.value)}
-                                className="w-full h-32 p-4 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
-                                placeholder={t('quiz.preview.writeAnswer', { lng: quizLanguage })}
-                              />
-                            </div>
-                            
-                            {question.codeSuffix && (
-                              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <CodeBlock code={question.codeSuffix} language={question.language || 'javascript'} />
-                              </div>
-                            )}
-                            
-                            <div className="flex gap-2">
-                              <Button onClick={() => runCode(question)}>
-                                {isRunning[question.id] 
-                                  ? t('quiz.preview.running', { lng: quizLanguage })
-                                  : t('quiz.preview.runCode', { lng: quizLanguage })}
-                              </Button>
-                              {!question.hideSolution && (
-                                <Button 
-                                  variant="outline" 
-                                  onClick={() => toggleSolution(question.id)}
-                                >
-                                  {showSolution[question.id] 
-                                    ? t('quiz.preview.hideSolution', { lng: quizLanguage })
-                                    : t('quiz.preview.showSolution', { lng: quizLanguage })}
+                                  )}
+                                </Droppable>
+                              </DragDropContext>
+                              
+                              <div className="flex gap-2 mt-4">
+                                <Button onClick={() => checkAnswer(question)}>
+                                  {t('quiz.preview.checkAnswer', { lng: quizLanguage })}
                                 </Button>
+                                {!question.hideSolution && (
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => toggleSolution(question.id)}
+                                  >
+                                    {showSolution[question.id] 
+                                      ? t('quiz.preview.hideSolution', { lng: quizLanguage })
+                                      : t('quiz.preview.showSolution', { lng: quizLanguage })}
+                                  </Button>
+                                )}
+                                {question.hintComment && (
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => toggleHint(question.id)}
+                                  >
+                                    {showHint[question.id]
+                                      ? t('quiz.preview.hideHint', { lng: quizLanguage })
+                                      : t('quiz.preview.showHint', { lng: quizLanguage })}
+                                  </Button>
+                                )}
+                              </div>
+                              
+                              {feedback[question.id] && (
+                                <div className={`p-4 rounded-lg ${
+                                  feedback[question.id] === t('quiz.preview.correct', { lng: quizLanguage })
+                                    ? 'bg-green-50 text-green-800 border border-green-200'
+                                    : 'bg-red-50 text-red-800 border border-red-200'
+                                }`}>
+                                  {feedback[question.id]}
+                                </div>
+                              )}
+                              
+                              {showHint[question.id] && question.hintComment && (
+                                <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-amber-800">💡</span>
+                                    <span className="text-amber-800">{question.hintComment}</span>
+                                  </div>
+                                </div>
                               )}
                             </div>
-                            
-                            {codeOutputs[question.id] && (
-                              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm">
-                                <div className="text-gray-400 mb-2">{t('quiz.preview.output', { lng: quizLanguage })}:</div>
-                                <pre>{codeOutputs[question.id]}</pre>
-                              </div>
-                            )}
-                            
-                            {showSolution[question.id] && question.solutionCode && (
-                              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                                <div className="text-green-800 font-medium mb-2">
-                                  {t('quiz.preview.solution', { lng: quizLanguage })}:
-                                </div>
-                                <div className="text-green-700">
-                                  {question.solutionCode}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                        
-                      case 'fill-gaps':
-                        return (
-                          <div className="space-y-4">
-                            <DragDropContext onDragEnd={(result) => {
-                              if (!result.destination) return;
-                              const sourceId = result.source.droppableId;
-                              const destinationId = result.destination.droppableId.replace('gap-', '');
-                              const sourceIndex = result.source.index;
-                              
-                              // If dragging from snippets list
-                              if (sourceId === 'snippets-list') {
-                                const snippet = question.availableSnippets?.[sourceIndex];
-                                if (snippet) {
-                                  setGapAnswers(prev => ({
-                                    ...prev,
-                                    [question.id]: {
-                                      ...prev[question.id],
-                                      [destinationId]: snippet
-                                    }
-                                  }));
-                                }
-                              }
-                            }}>
-                              <div className="space-y-4">
+                          );
+                          
+                        case 'multiple-choice':
+                        case 'single-choice':
+                          return (
+                            <div className="space-y-4">
+                              {question.codeExample && (
                                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                  <div className="font-mono text-sm whitespace-pre-wrap" style={{ lineHeight: '2' }}>
-                                    {(() => {
-                                      const parts = question.codeWithGaps?.split(/\[GAP_\d+\]/);
-                                      if (!parts || !question.gaps) return null;
+                                  <CodeBlock code={question.codeExample} language={question.language || 'javascript'} />
+                                </div>
+                              )}
+                              
+                              <div className="space-y-2">
+                                {question.options?.map((option) => (
+                                  <div key={option.id} className="flex items-center gap-2">
+                                    <input
+                                      type={question.type === 'multiple-choice' ? 'checkbox' : 'radio'}
+                                      id={option.id}
+                                      name={`question-${question.id}`}
+                                      checked={
+                                        question.type === 'multiple-choice'
+                                          ? Array.isArray(selectedAnswers[question.id]) &&
+                                            (selectedAnswers[question.id] as string[]).includes(option.id)
+                                          : selectedAnswers[question.id] === option.id
+                                      }
+                                      onChange={() => handleAnswerChange(
+                                        question.id, 
+                                        option.id, 
+                                        question.type as AnswerType
+                                      )}
+                                      className="h-4 w-4"
+                                    />
+                                    <label htmlFor={option.id} className="text-sm">
+                                      {option.text}
+                                    </label>
+                                    {showSolution[question.id] && option.isCorrect && (
+                                      <span className="text-green-600 text-sm ml-2">✓</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              <div className="flex gap-2 mt-4">
+                                <Button onClick={() => checkAnswer(question)}>
+                                  {t('quiz.preview.checkAnswer', { lng: quizLanguage })}
+                                </Button>
+                                {!question.hideSolution && (
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => toggleSolution(question.id)}
+                                  >
+                                    {showSolution[question.id] 
+                                      ? t('quiz.preview.hideSolution', { lng: quizLanguage })
+                                      : t('quiz.preview.showSolution', { lng: quizLanguage })}
+                                  </Button>
+                                )}
+                              </div>
+                              
+                              {feedback[question.id] && (
+                                <div className={`p-4 rounded-lg ${
+                                  feedback[question.id] === t('quiz.preview.correct', { lng: quizLanguage })
+                                    ? 'bg-green-50 text-green-800 border border-green-200'
+                                    : 'bg-red-50 text-red-800 border border-red-200'
+                                }`}>
+                                  {feedback[question.id]}
+                                </div>
+                              )}
 
-                                      return parts.map((part, index) => (
-                                        <React.Fragment key={index}>
-                                          {part}
-                                          {index < question.gaps.length && (
-                                            <Droppable droppableId={`gap-${question.gaps[index].id}`}>
-                                              {(provided, snapshot) => (
-                                                <span
-                                                  ref={provided.innerRef}
-                                                  {...provided.droppableProps}
-                                                  className={`inline-flex items-center min-w-[8rem] min-h-[2rem] ${
-                                                    snapshot.isDraggingOver 
-                                                      ? 'ring-2 ring-blue-500 bg-blue-50' 
-                                                      : 'ring-1 ring-gray-300 bg-white'
-                                                  }`}
-                                                  style={{ 
-                                                    padding: '2px',
-                                                    display: 'inline-flex',
-                                                    position: 'static',
-                                                    verticalAlign: 'baseline',
-                                                    margin: '0 2px',
-                                                    height: '1.5rem'
-                                                  }}
-                                                >
-                                                  <input
-                                                    type="text"
-                                                    value={gapAnswers[question.id]?.[question.gaps[index].id] || ''}
-                                                    onChange={(e) => {
-                                                      setGapAnswers(prev => ({
-                                                        ...prev,
-                                                        [question.id]: {
-                                                          ...prev[question.id],
-                                                          [question.gaps[index].id]: e.target.value
-                                                        }
-                                                      }));
-                                                    }}
-                                                    className={`w-full px-2 py-1 rounded font-mono text-sm border-0 focus:ring-0 ${
-                                                      snapshot.isDraggingOver
-                                                        ? 'bg-blue-50'
-                                                        : 'bg-white'
+                              {showSolution[question.id] && (
+                                <div className="bg-green-50 p-4 rounded-lg border border-green-200 mt-4">
+                                  <div className="text-green-800 font-medium mb-2">
+                                    {t('quiz.preview.solution', { lng: quizLanguage })}:
+                                  </div>
+                                  <div className="space-y-2">
+                                    {question.options?.filter(opt => opt.isCorrect).map((option) => (
+                                      <div key={option.id} className="text-green-700">
+                                        • {option.text}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                          
+                        case 'fill-whole':
+                          return (
+                            <div className="space-y-4">
+                              {question.codePrefix && (
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                  <CodeBlock code={question.codePrefix} language={question.language || 'javascript'} />
+                                </div>
+                              )}
+                              
+                              <div className="bg-white border border-gray-200 rounded-lg">
+                                <textarea
+                                  value={codeInputs[question.id] || ''}
+                                  onChange={(e) => handleCodeChange(question.id, e.target.value)}
+                                  className="w-full h-32 p-4 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+                                  placeholder={t('quiz.preview.writeAnswer', { lng: quizLanguage })}
+                                />
+                              </div>
+                              
+                              {question.codeSuffix && (
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                  <CodeBlock code={question.codeSuffix} language={question.language || 'javascript'} />
+                                </div>
+                              )}
+                              
+                              <div className="flex gap-2">
+                                <Button onClick={() => runCode(question)}>
+                                  {isRunning[question.id] 
+                                    ? t('quiz.preview.running', { lng: quizLanguage })
+                                    : t('quiz.preview.runCode', { lng: quizLanguage })}
+                                </Button>
+                                {!question.hideSolution && (
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => toggleSolution(question.id)}
+                                  >
+                                    {showSolution[question.id] 
+                                      ? t('quiz.preview.hideSolution', { lng: quizLanguage })
+                                      : t('quiz.preview.showSolution', { lng: quizLanguage })}
+                                  </Button>
+                                )}
+                              </div>
+                              
+                              {codeOutputs[question.id] && (
+                                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm">
+                                  <div className="text-gray-400 mb-2">{t('quiz.preview.output', { lng: quizLanguage })}:</div>
+                                  <pre>{codeOutputs[question.id]}</pre>
+                                </div>
+                              )}
+                              
+                              {showSolution[question.id] && question.solutionCode && (
+                                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                  <div className="text-green-800 font-medium mb-2">
+                                    {t('quiz.preview.solution', { lng: quizLanguage })}:
+                                  </div>
+                                  <div className="text-green-700">
+                                    {question.solutionCode}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                          
+                        case 'fill-gaps':
+                          return (
+                            <div className="space-y-4">
+                              <DragDropContext onDragEnd={(result) => {
+                                if (!result.destination) return;
+                                const sourceId = result.source.droppableId;
+                                const destinationId = result.destination.droppableId.replace('gap-', '');
+                                const sourceIndex = result.source.index;
+                                
+                                // If dragging from snippets list
+                                if (sourceId === 'snippets-list') {
+                                  const snippet = question.availableSnippets?.[sourceIndex];
+                                  if (snippet) {
+                                    setGapAnswers(prev => ({
+                                      ...prev,
+                                      [question.id]: {
+                                        ...prev[question.id],
+                                        [destinationId]: snippet
+                                      }
+                                    }));
+                                  }
+                                }
+                              }}>
+                                <div className="space-y-4">
+                                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <div className="font-mono text-sm whitespace-pre-wrap" style={{ lineHeight: '2' }}>
+                                      {(() => {
+                                        const parts = question.codeWithGaps?.split(/\[GAP_\d+\]/);
+                                        if (!parts || !question.gaps) return null;
+
+                                        return parts.map((part, index) => (
+                                          <React.Fragment key={index}>
+                                            {part}
+                                            {index < question.gaps.length && (
+                                              <Droppable droppableId={`gap-${question.gaps[index].id}`}>
+                                                {(provided, snapshot) => (
+                                                  <span
+                                                    ref={provided.innerRef}
+                                                    {...provided.droppableProps}
+                                                    className={`inline-flex items-center min-w-[8rem] min-h-[2rem] ${
+                                                      snapshot.isDraggingOver 
+                                                        ? 'ring-2 ring-blue-500 bg-blue-50' 
+                                                        : 'ring-1 ring-gray-300 bg-white'
                                                     }`}
-                                                    placeholder={`[GAP ${question.gaps[index].position}]`}
-                                                    style={{
-                                                      lineHeight: 'inherit',
+                                                    style={{ 
+                                                      padding: '2px',
+                                                      display: 'inline-flex',
+                                                      position: 'static',
+                                                      verticalAlign: 'baseline',
+                                                      margin: '0 2px',
                                                       height: '1.5rem'
                                                     }}
-                                                  />
-                                                  {provided.placeholder}
-                                                </span>
-                                              )}
-                                            </Droppable>
-                                          )}
-                                        </React.Fragment>
-                                      ));
-                                    })()}
-                                  </div>
-                                </div>
-                                
-                                {question.availableSnippets && question.availableSnippets.length > 0 && (
-                                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                    <div className="text-sm font-medium mb-2">
-                                      {t('quiz.preview.availableSnippets', { lng: quizLanguage })}:
+                                                  >
+                                                    <input
+                                                      type="text"
+                                                      value={gapAnswers[question.id]?.[question.gaps[index].id] || ''}
+                                                      onChange={(e) => {
+                                                        setGapAnswers(prev => ({
+                                                          ...prev,
+                                                          [question.id]: {
+                                                            ...prev[question.id],
+                                                            [question.gaps[index].id]: e.target.value
+                                                          }
+                                                        }));
+                                                      }}
+                                                      className={`w-full px-2 py-1 rounded font-mono text-sm border-0 focus:ring-0 ${
+                                                        snapshot.isDraggingOver
+                                                          ? 'bg-blue-50'
+                                                          : 'bg-white'
+                                                      }`}
+                                                      placeholder={`[GAP ${question.gaps[index].position}]`}
+                                                      style={{
+                                                        lineHeight: 'inherit',
+                                                        height: '1.5rem'
+                                                      }}
+                                                    />
+                                                    {provided.placeholder}
+                                                  </span>
+                                                )}
+                                              </Droppable>
+                                            )}
+                                          </React.Fragment>
+                                        ));
+                                      })()}
                                     </div>
-                                    <Droppable droppableId="snippets-list" direction="horizontal">
-                                      {(provided) => (
-                                        <div 
-                                          ref={provided.innerRef}
-                                          {...provided.droppableProps}
-                                          className="flex flex-wrap gap-2"
-                                        >
-                                          {question.availableSnippets.map((snippet, index) => (
-                                            <Draggable
-                                              key={`${question.id}-snippet-${index}`}
-                                              draggableId={`${question.id}-snippet-${index}`}
-                                              index={index}
-                                            >
-                                              {(provided, snapshot) => (
-                                                <div
-                                                  ref={provided.innerRef}
-                                                  {...provided.draggableProps}
-                                                  {...provided.dragHandleProps}
-                                                  className={`inline-flex items-center px-3 py-1 rounded border font-mono text-sm cursor-move gap-2
-                                                    ${snapshot.isDragging 
-                                                      ? 'shadow-lg ring-2 ring-blue-500 border-transparent bg-white' 
-                                                      : 'border-gray-200 bg-white hover:bg-gray-50'
-                                                    }`}
-                                                  style={{
-                                                    ...provided.draggableProps.style,
-                                                    position: snapshot.isDragging ? 'fixed' : 'static',
-                                                    margin: 0,
-                                                    transform: snapshot.isDragging 
-                                                      ? provided.draggableProps.style?.transform
-                                                      : undefined,
-                                                    zIndex: snapshot.isDragging ? 9999 : 'auto',
-                                                    pointerEvents: snapshot.isDragging ? 'none' : undefined
-                                                  }}
-                                                >
-                                                  <GripVertical className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                                  <span className="whitespace-nowrap">{snippet}</span>
-                                                </div>
-                                              )}
-                                            </Draggable>
-                                          ))}
-                                          {provided.placeholder}
-                                        </div>
-                                      )}
-                                    </Droppable>
                                   </div>
+                                  
+                                  {question.availableSnippets && question.availableSnippets.length > 0 && (
+                                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                      <div className="text-sm font-medium mb-2">
+                                        {t('quiz.preview.availableSnippets', { lng: quizLanguage })}:
+                                      </div>
+                                      <Droppable droppableId="snippets-list" direction="horizontal">
+                                        {(provided) => (
+                                          <div 
+                                            ref={provided.innerRef}
+                                            {...provided.droppableProps}
+                                            className="flex flex-wrap gap-2"
+                                          >
+                                            {question.availableSnippets.map((snippet, index) => (
+                                              <Draggable
+                                                key={`${question.id}-snippet-${index}`}
+                                                draggableId={`${question.id}-snippet-${index}`}
+                                                index={index}
+                                              >
+                                                {(provided, snapshot) => (
+                                                  <div
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    {...provided.dragHandleProps}
+                                                    className={`inline-flex items-center px-3 py-1 rounded border font-mono text-sm cursor-move gap-2
+                                                      ${snapshot.isDragging 
+                                                        ? 'shadow-lg ring-2 ring-blue-500 border-transparent bg-white' 
+                                                        : 'border-gray-200 bg-white hover:bg-gray-50'
+                                                      }`}
+                                                    style={{
+                                                      ...provided.draggableProps.style,
+                                                      position: snapshot.isDragging ? 'fixed' : 'static',
+                                                      margin: 0,
+                                                      transform: snapshot.isDragging 
+                                                        ? provided.draggableProps.style?.transform
+                                                        : undefined,
+                                                      zIndex: snapshot.isDragging ? 9999 : 'auto',
+                                                      pointerEvents: snapshot.isDragging ? 'none' : undefined
+                                                    }}
+                                                  >
+                                                    <GripVertical className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                                    <span className="whitespace-nowrap">{snippet}</span>
+                                                  </div>
+                                                )}
+                                              </Draggable>
+                                            ))}
+                                            {provided.placeholder}
+                                          </div>
+                                        )}
+                                      </Droppable>
+                                    </div>
+                                  )}
+                                </div>
+                              </DragDropContext>
+                              
+                              <div className="flex gap-2 mt-4">
+                                <Button onClick={() => checkAnswer(question)}>
+                                  {t('quiz.preview.checkAnswer', { lng: quizLanguage })}
+                                </Button>
+                                {!question.hideSolution && (
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => toggleSolution(question.id)}
+                                  >
+                                    {showSolution[question.id] 
+                                      ? t('quiz.preview.hideSolution', { lng: quizLanguage })
+                                      : t('quiz.preview.showSolution', { lng: quizLanguage })}
+                                  </Button>
                                 )}
                               </div>
-                            </DragDropContext>
-                            
-                            <div className="flex gap-2 mt-4">
-                              <Button onClick={() => checkAnswer(question)}>
-                                {t('quiz.preview.checkAnswer', { lng: quizLanguage })}
-                              </Button>
-                              {!question.hideSolution && (
-                                <Button 
-                                  variant="outline" 
-                                  onClick={() => toggleSolution(question.id)}
-                                >
-                                  {showSolution[question.id] 
-                                    ? t('quiz.preview.hideSolution', { lng: quizLanguage })
-                                    : t('quiz.preview.showSolution', { lng: quizLanguage })}
-                                </Button>
+                              
+                              {feedback[question.id] && (
+                                <div className={`p-4 rounded-lg ${
+                                  feedback[question.id] === t('quiz.preview.correct', { lng: quizLanguage })
+                                    ? 'bg-green-50 text-green-800 border border-green-200'
+                                    : 'bg-red-50 text-red-800 border border-red-200'
+                                }`}>
+                                  {feedback[question.id]}
+                                </div>
                               )}
-                            </div>
-                            
-                            {feedback[question.id] && (
-                              <div className={`p-4 rounded-lg ${
-                                feedback[question.id] === t('quiz.preview.correct', { lng: quizLanguage })
-                                  ? 'bg-green-50 text-green-800 border border-green-200'
-                                  : 'bg-red-50 text-red-800 border border-red-200'
-                              }`}>
-                                {feedback[question.id]}
-                              </div>
-                            )}
 
-                            {showSolution[question.id] && question.gaps && (
-                              <div className="bg-green-50 p-4 rounded-lg border border-green-200 mt-4">
-                                <div className="text-green-800 font-medium mb-2">
-                                  {t('quiz.preview.solution', { lng: quizLanguage })}:
-                                </div>
-                                <div className="space-y-2">
-                                  {question.gaps.map((gap) => (
-                                    <div key={gap.id} className="text-green-700 font-mono">
-                                      Gap {gap.position}: {gap.answer}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-
-                      case 'text':
-                        return (
-                          <div className="space-y-4">
-                            <div className="bg-white border border-gray-200 rounded-lg">
-                              <textarea
-                                value={codeInputs[question.id] || ''}
-                                onChange={(e) => handleCodeChange(question.id, e.target.value)}
-                                className="w-full h-32 p-4 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
-                                placeholder={t('quiz.preview.writeAnswer', { lng: quizLanguage })}
-                              />
-                            </div>
-                            
-                            <div className="flex gap-2">
-                              <Button onClick={() => checkAnswer(question)}>
-                                {t('quiz.preview.checkAnswer', { lng: quizLanguage })}
-                              </Button>
-                              {!question.hideSolution && (
-                                <Button 
-                                  variant="outline" 
-                                  onClick={() => toggleSolution(question.id)}
-                                >
-                                  {showSolution[question.id] 
-                                    ? t('quiz.preview.hideSolution', { lng: quizLanguage })
-                                    : t('quiz.preview.showSolution', { lng: quizLanguage })}
-                                </Button>
-                              )}
-                            </div>
-                            
-                            {feedback[question.id] && (
-                              <div className={`p-4 rounded-lg ${
-                                feedback[question.id] === t('quiz.preview.correct', { lng: quizLanguage })
-                                  ? 'bg-green-50 text-green-800 border border-green-200'
-                                  : 'bg-red-50 text-red-800 border border-red-200'
-                              }`}>
-                                {feedback[question.id]}
-                              </div>
-                            )}
-
-                            {showSolution[question.id] && (
-                              <div className="bg-green-50 p-4 rounded-lg border border-green-200 mt-4">
-                                <div className="text-green-800 font-medium mb-2">
-                                  {t('quiz.preview.solution', { lng: quizLanguage })}:
-                                </div>
-                                <div className="text-green-700 whitespace-pre-wrap font-mono">
-                                  {question.textAnswer || t('quiz.preview.noSolutionProvided', { lng: quizLanguage })}
-                                </div>
-                                {question.explanation && (
-                                  <div className="mt-2 text-green-700">
-                                    <div className="font-medium mb-1">{t('quiz.preview.explanation', { lng: quizLanguage })}:</div>
-                                    {question.explanation}
+                              {showSolution[question.id] && question.gaps && (
+                                <div className="bg-green-50 p-4 rounded-lg border border-green-200 mt-4">
+                                  <div className="text-green-800 font-medium mb-2">
+                                    {t('quiz.preview.solution', { lng: quizLanguage })}:
                                   </div>
+                                  <div className="space-y-2">
+                                    {question.gaps.map((gap) => (
+                                      <div key={gap.id} className="text-green-700 font-mono">
+                                        Gap {gap.position}: {gap.answer}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+
+                        case 'text':
+                          return (
+                            <div className="space-y-4">
+                              <div className="bg-white border border-gray-200 rounded-lg">
+                                <textarea
+                                  value={codeInputs[question.id] || ''}
+                                  onChange={(e) => handleCodeChange(question.id, e.target.value)}
+                                  className="w-full h-32 p-4 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+                                  placeholder={t('quiz.preview.writeAnswer', { lng: quizLanguage })}
+                                />
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                <Button onClick={() => checkAnswer(question)}>
+                                  {t('quiz.preview.checkAnswer', { lng: quizLanguage })}
+                                </Button>
+                                {!question.hideSolution && (
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => toggleSolution(question.id)}
+                                  >
+                                    {showSolution[question.id] 
+                                      ? t('quiz.preview.hideSolution', { lng: quizLanguage })
+                                      : t('quiz.preview.showSolution', { lng: quizLanguage })}
+                                  </Button>
                                 )}
                               </div>
-                            )}
-                          </div>
-                        );
+                              
+                              {feedback[question.id] && (
+                                <div className={`p-4 rounded-lg ${
+                                  feedback[question.id] === t('quiz.preview.correct', { lng: quizLanguage })
+                                    ? 'bg-green-50 text-green-800 border border-green-200'
+                                    : 'bg-red-50 text-red-800 border border-red-200'
+                                }`}>
+                                  {feedback[question.id]}
+                                </div>
+                              )}
 
-                      case 'find-code-errors':
-                        return (
-                          <div className="space-y-4">
-                            {question.codeExample && (
+                              {showSolution[question.id] && (
+                                <div className="bg-green-50 p-4 rounded-lg border border-green-200 mt-4">
+                                  <div className="text-green-800 font-medium mb-2">
+                                    {t('quiz.preview.solution', { lng: quizLanguage })}
+                                  </div>
+                                  
+                                  {question.errorDescriptions && question.errorDescriptions.length > 0 && (
+                                    <div className="mb-4">
+                                      <div className="text-green-800 font-medium mb-2">
+                                        {t('quiz.editor.findAndFixErrors.labels.errorDescriptions', { lng: quizLanguage })}
+                                      </div>
+                                      <ul className="list-disc list-inside space-y-1 text-green-700">
+                                        {question.errorDescriptions.map((error, index) => (
+                                          <li key={index}>{error}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  
+                                  {question.correctCode && (
+                                    <div>
+                                      <div className="text-green-800 font-medium mb-2">
+                                        {t('quiz.editor.findAndFixErrors.labels.correctCode', { lng: quizLanguage })}
+                                      </div>
+                                      <div className="bg-white rounded-lg p-4 border border-green-200">
+                                        <CodeBlock 
+                                          code={question.correctCode} 
+                                          language={question.language || 'javascript'} 
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+
+                        case 'find-code-errors':
+                          return (
+                            <div className="space-y-4">
+                              {question.codeWithErrors && (
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                  <div className="text-sm font-medium mb-2">
+                                    {t('quiz.editor.findAndFixErrors.labels.codeWithErrors', { lng: quizLanguage })}
+                                  </div>
+                                  <CodeBlock code={question.codeWithErrors} language={question.language || 'javascript'} />
+                                </div>
+                              )}
+                              
+                              <div className="bg-white border border-gray-200 rounded-lg">
+                                <textarea
+                                  value={codeInputs[question.id] || ''}
+                                  onChange={(e) => handleCodeChange(question.id, e.target.value)}
+                                  className="w-full h-32 p-4 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+                                  placeholder={t('quiz.preview.writeAnswer', { lng: quizLanguage })}
+                                />
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                <Button onClick={() => checkAnswer(question)}>
+                                  {t('quiz.preview.checkAnswer', { lng: quizLanguage })}
+                                </Button>
+                                {!question.hideSolution && (
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => toggleSolution(question.id)}
+                                  >
+                                    {showSolution[question.id] 
+                                      ? t('quiz.preview.hideSolution', { lng: quizLanguage })
+                                      : t('quiz.preview.showSolution', { lng: quizLanguage })}
+                                  </Button>
+                                )}
+                                {question.hintComment && (
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => toggleHint(question.id)}
+                                  >
+                                    {showHint[question.id]
+                                      ? t('quiz.preview.hideHint', { lng: quizLanguage })
+                                      : t('quiz.preview.showHint', { lng: quizLanguage })}
+                                  </Button>
+                                )}
+                              </div>
+                              
+                              {feedback[question.id] && (
+                                <div className={`p-4 rounded-lg ${
+                                  feedback[question.id] === t('quiz.preview.correct', { lng: quizLanguage })
+                                    ? 'bg-green-50 text-green-800 border border-green-200'
+                                    : 'bg-red-50 text-red-800 border border-red-200'
+                                }`}>
+                                  {feedback[question.id]}
+                                </div>
+                              )}
+
+                              {showHint[question.id] && question.hintComment && (
+                                <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-amber-800">💡</span>
+                                    <span className="text-amber-800">{question.hintComment}</span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {showSolution[question.id] && (
+                                <div className="bg-green-50 p-4 rounded-lg border border-green-200 mt-4">
+                                  <div className="text-green-800 font-medium mb-2">
+                                    {t('quiz.preview.solution', { lng: quizLanguage })}
+                                  </div>
+                                  
+                                  {question.errorDescriptions && question.errorDescriptions.length > 0 && (
+                                    <div className="mb-4">
+                                      <div className="text-green-800 font-medium mb-2">
+                                        {t('quiz.editor.findAndFixErrors.labels.errorDescriptions', { lng: quizLanguage })}
+                                      </div>
+                                      <ul className="list-disc list-inside space-y-1 text-green-700">
+                                        {question.errorDescriptions.map((error, index) => (
+                                          <li key={index}>{error}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  
+                                  {question.correctCode && (
+                                    <div>
+                                      <div className="text-green-800 font-medium mb-2">
+                                        {t('quiz.editor.findAndFixErrors.labels.correctCode', { lng: quizLanguage })}
+                                      </div>
+                                      <div className="bg-white rounded-lg p-4 border border-green-200">
+                                        <CodeBlock 
+                                          code={question.correctCode} 
+                                          language={question.language || 'javascript'} 
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+
+                        case 'jigsaw':
+                          return (
+                            <div className="space-y-4">
                               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <CodeBlock code={question.codeExample} language={question.language || 'javascript'} />
+                                <p className="text-gray-500">
+                                  {t('quiz.preview.jigsawInstructions', { lng: quizLanguage })}
+                                </p>
                               </div>
-                            )}
-                            
-                            <div className="bg-white border border-gray-200 rounded-lg">
-                              <textarea
-                                value={codeInputs[question.id] || ''}
-                                onChange={(e) => handleCodeChange(question.id, e.target.value)}
-                                className="w-full h-32 p-4 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
-                                placeholder={t('quiz.preview.identifyErrors', { lng: quizLanguage })}
-                              />
-                            </div>
-                            
-                            <div className="flex gap-2">
-                              <Button onClick={() => checkAnswer(question)}>
-                                {t('quiz.preview.checkAnswer', { lng: quizLanguage })}
-                              </Button>
-                              {!question.hideSolution && (
-                                <Button 
-                                  variant="outline" 
-                                  onClick={() => toggleSolution(question.id)}
-                                >
-                                  {showSolution[question.id] 
-                                    ? t('quiz.preview.hideSolution', { lng: quizLanguage })
-                                    : t('quiz.preview.showSolution', { lng: quizLanguage })}
+                              
+                              <div className="flex gap-2">
+                                <Button onClick={() => checkAnswer(question)}>
+                                  {t('quiz.preview.checkAnswer', { lng: quizLanguage })}
                                 </Button>
+                                {!question.hideSolution && (
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => toggleSolution(question.id)}
+                                  >
+                                    {showSolution[question.id] 
+                                      ? t('quiz.preview.hideSolution', { lng: quizLanguage })
+                                      : t('quiz.preview.showSolution', { lng: quizLanguage })}
+                                  </Button>
+                                )}
+                              </div>
+                              
+                              {feedback[question.id] && (
+                                <div className={`p-4 rounded-lg ${
+                                  feedback[question.id] === t('quiz.preview.correct', { lng: quizLanguage })
+                                    ? 'bg-green-50 text-green-800 border border-green-200'
+                                    : 'bg-red-50 text-red-800 border border-red-200'
+                                }`}>
+                                  {feedback[question.id]}
+                                </div>
                               )}
                             </div>
-                            
-                            {feedback[question.id] && (
-                              <div className={`p-4 rounded-lg ${
-                                feedback[question.id] === t('quiz.preview.correct', { lng: quizLanguage })
-                                  ? 'bg-green-50 text-green-800 border border-green-200'
-                                  : 'bg-red-50 text-red-800 border border-red-200'
-                              }`}>
-                                {feedback[question.id]}
-                              </div>
-                            )}
-                          </div>
-                        );
-
-                      case 'jigsaw':
-                        return (
-                          <div className="space-y-4">
+                          );
+                          
+                        default:
+                          return (
                             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                               <p className="text-gray-500">
-                                {t('quiz.preview.jigsawInstructions', { lng: quizLanguage })}
+                                {t('quiz.preview.questionTypeNotImplemented', { lng: quizLanguage })}
                               </p>
                             </div>
-                            
-                            <div className="flex gap-2">
-                              <Button onClick={() => checkAnswer(question)}>
-                                {t('quiz.preview.checkAnswer', { lng: quizLanguage })}
-                              </Button>
-                              {!question.hideSolution && (
-                                <Button 
-                                  variant="outline" 
-                                  onClick={() => toggleSolution(question.id)}
-                                >
-                                  {showSolution[question.id] 
-                                    ? t('quiz.preview.hideSolution', { lng: quizLanguage })
-                                    : t('quiz.preview.showSolution', { lng: quizLanguage })}
-                                </Button>
-                              )}
-                            </div>
-                            
-                            {feedback[question.id] && (
-                              <div className={`p-4 rounded-lg ${
-                                feedback[question.id] === t('quiz.preview.correct', { lng: quizLanguage })
-                                  ? 'bg-green-50 text-green-800 border border-green-200'
-                                  : 'bg-red-50 text-red-800 border border-red-200'
-                              }`}>
-                                {feedback[question.id]}
-                              </div>
-                            )}
-                          </div>
-                        );
-                        
-                      default:
-                        return (
-                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <p className="text-gray-500">
-                              {t('quiz.preview.questionTypeNotImplemented', { lng: quizLanguage })}
-                            </p>
-                          </div>
-                        );
-                    }
-                  })()}
+                          );
+                      }
+                    })()}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ) : null
+            )}
           </div>
         </div>
       </DialogContent>
