@@ -12,6 +12,7 @@ import type {
   DroppableProvided as DndDroppableProvided, 
   DraggableProvided as DndDraggableProvided 
 } from '@hello-pangea/dnd';
+import React from 'react';
 
 interface PreviewModalProps {
   quiz: Quiz;
@@ -247,12 +248,27 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
         break;
 
       case 'fill-gaps':
-        if (!gapAnswers[question.id]) {
+        if (!gapAnswers[question.id] || !question.gaps) {
           feedbackMessage = t('quiz.preview.fillAllGaps', { lng: quizLanguage });
           break;
         }
-        // Add gap answers checking logic here when implemented
-        feedbackMessage = t('quiz.preview.answerRecorded', { lng: quizLanguage });
+        
+        const allGapsFilled = question.gaps.every(
+          gap => gapAnswers[question.id]?.[gap.id]?.trim() !== ''
+        );
+        
+        if (!allGapsFilled) {
+          feedbackMessage = t('quiz.preview.fillAllGaps', { lng: quizLanguage });
+          break;
+        }
+
+        isCorrect = question.gaps.every(
+          gap => gapAnswers[question.id][gap.id]?.trim().toLowerCase() === gap.answer.trim().toLowerCase()
+        );
+        
+        feedbackMessage = isCorrect 
+          ? t('quiz.preview.correct', { lng: quizLanguage })
+          : t('quiz.preview.incorrect', { lng: quizLanguage });
         break;
 
       case 'text':
@@ -309,19 +325,6 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
     }
   };
 
-  const handleDragEnd = (result: DndDropResult, questionId: string) => {
-    if (!result.destination) return;
-
-    const items = Array.from(orderedBlocks[questionId]);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    setOrderedBlocks(prev => ({
-      ...prev,
-      [questionId]: items
-    }));
-  };
-
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col" hideDefaultCloseButton>
@@ -337,17 +340,6 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto py-4">
-          {/* Debug Info */}
-          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-4">
-            <p className="text-yellow-800">
-              {t('quiz.preview.debugInfo', { 
-                count: quiz.questions.length, 
-                type: quiz.questions[0]?.type,
-                lng: quizLanguage 
-              })}
-            </p>
-          </div>
-
           {/* All Questions */}
           <div className="space-y-8">
             {quiz.questions.map((question, index) => (
@@ -600,11 +592,143 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                       case 'fill-gaps':
                         return (
                           <div className="space-y-4">
-                            {question.codeExample && (
-                              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <CodeBlock code={question.codeExample} language={question.language || 'javascript'} />
+                            <DragDropContext onDragEnd={(result) => {
+                              if (!result.destination) return;
+                              const sourceId = result.source.droppableId;
+                              const destinationId = result.destination.droppableId.replace('gap-', '');
+                              const sourceIndex = result.source.index;
+                              
+                              // If dragging from snippets list
+                              if (sourceId === 'snippets-list') {
+                                const snippet = question.availableSnippets?.[sourceIndex];
+                                if (snippet) {
+                                  setGapAnswers(prev => ({
+                                    ...prev,
+                                    [question.id]: {
+                                      ...prev[question.id],
+                                      [destinationId]: snippet
+                                    }
+                                  }));
+                                }
+                              }
+                            }}>
+                              <div className="space-y-4">
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                  <div className="font-mono text-sm whitespace-pre-wrap" style={{ lineHeight: '2' }}>
+                                    {(() => {
+                                      const parts = question.codeWithGaps?.split(/\[GAP_\d+\]/);
+                                      if (!parts || !question.gaps) return null;
+
+                                      return parts.map((part, index) => (
+                                        <React.Fragment key={index}>
+                                          {part}
+                                          {index < question.gaps.length && (
+                                            <Droppable droppableId={`gap-${question.gaps[index].id}`}>
+                                              {(provided, snapshot) => (
+                                                <span
+                                                  ref={provided.innerRef}
+                                                  {...provided.droppableProps}
+                                                  className={`inline-flex items-center min-w-[8rem] min-h-[2rem] ${
+                                                    snapshot.isDraggingOver 
+                                                      ? 'ring-2 ring-blue-500 bg-blue-50' 
+                                                      : 'ring-1 ring-gray-300 bg-white'
+                                                  }`}
+                                                  style={{ 
+                                                    padding: '2px',
+                                                    display: 'inline-flex',
+                                                    position: 'static',
+                                                    verticalAlign: 'baseline',
+                                                    margin: '0 2px',
+                                                    height: '1.5rem'
+                                                  }}
+                                                >
+                                                  <input
+                                                    type="text"
+                                                    value={gapAnswers[question.id]?.[question.gaps[index].id] || ''}
+                                                    onChange={(e) => {
+                                                      setGapAnswers(prev => ({
+                                                        ...prev,
+                                                        [question.id]: {
+                                                          ...prev[question.id],
+                                                          [question.gaps[index].id]: e.target.value
+                                                        }
+                                                      }));
+                                                    }}
+                                                    className={`w-full px-2 py-1 rounded font-mono text-sm border-0 focus:ring-0 ${
+                                                      snapshot.isDraggingOver
+                                                        ? 'bg-blue-50'
+                                                        : 'bg-white'
+                                                    }`}
+                                                    placeholder={`[GAP ${question.gaps[index].position}]`}
+                                                    style={{
+                                                      lineHeight: 'inherit',
+                                                      height: '1.5rem'
+                                                    }}
+                                                  />
+                                                  {provided.placeholder}
+                                                </span>
+                                              )}
+                                            </Droppable>
+                                          )}
+                                        </React.Fragment>
+                                      ));
+                                    })()}
+                                  </div>
+                                </div>
+                                
+                                {question.availableSnippets && question.availableSnippets.length > 0 && (
+                                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <div className="text-sm font-medium mb-2">
+                                      {t('quiz.preview.availableSnippets', { lng: quizLanguage })}:
+                                    </div>
+                                    <Droppable droppableId="snippets-list" direction="horizontal">
+                                      {(provided) => (
+                                        <div 
+                                          ref={provided.innerRef}
+                                          {...provided.droppableProps}
+                                          className="flex flex-wrap gap-2"
+                                        >
+                                          {question.availableSnippets.map((snippet, index) => (
+                                            <Draggable
+                                              key={`${question.id}-snippet-${index}`}
+                                              draggableId={`${question.id}-snippet-${index}`}
+                                              index={index}
+                                            >
+                                              {(provided, snapshot) => (
+                                                <div
+                                                  ref={provided.innerRef}
+                                                  {...provided.draggableProps}
+                                                  {...provided.dragHandleProps}
+                                                  className={`inline-flex items-center px-3 py-1 rounded border font-mono text-sm cursor-move gap-2
+                                                    ${snapshot.isDragging 
+                                                      ? 'shadow-lg ring-2 ring-blue-500 border-transparent bg-white' 
+                                                      : 'border-gray-200 bg-white hover:bg-gray-50'
+                                                    }`}
+                                                  style={{
+                                                    ...provided.draggableProps.style,
+                                                    position: snapshot.isDragging ? 'fixed' : 'static',
+                                                    margin: 0,
+                                                    transform: snapshot.isDragging 
+                                                      ? provided.draggableProps.style?.transform
+                                                      : undefined,
+                                                    zIndex: snapshot.isDragging ? 9999 : 'auto',
+                                                    pointerEvents: snapshot.isDragging ? 'none' : undefined
+                                                  }}
+                                                >
+                                                  <GripVertical className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                                  <span className="whitespace-nowrap">{snippet}</span>
+                                                </div>
+                                              )}
+                                            </Draggable>
+                                          ))}
+                                          {provided.placeholder}
+                                        </div>
+                                      )}
+                                    </Droppable>
+                                  </div>
+                                )}
                               </div>
-                            )}
+                            </DragDropContext>
                             
                             <div className="flex gap-2 mt-4">
                               <Button onClick={() => checkAnswer(question)}>
@@ -629,6 +753,21 @@ export default function PreviewModal({ quiz, onClose }: PreviewModalProps) {
                                   : 'bg-red-50 text-red-800 border border-red-200'
                               }`}>
                                 {feedback[question.id]}
+                              </div>
+                            )}
+
+                            {showSolution[question.id] && question.gaps && (
+                              <div className="bg-green-50 p-4 rounded-lg border border-green-200 mt-4">
+                                <div className="text-green-800 font-medium mb-2">
+                                  {t('quiz.preview.solution', { lng: quizLanguage })}:
+                                </div>
+                                <div className="space-y-2">
+                                  {question.gaps.map((gap) => (
+                                    <div key={gap.id} className="text-green-700 font-mono">
+                                      Gap {gap.position}: {gap.answer}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             )}
                           </div>
